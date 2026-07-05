@@ -22,13 +22,20 @@ export const Navbar: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
   const isLandingPage = location.pathname === '/';
 
+  // Smart Logo Destination based on User Authentication & Role
+  const logoTarget = !isAuthenticated
+    ? '/'
+    : user?.role === 'Admin'
+    ? '/admin'
+    : '/discover';
+
   return (
     <>
       <nav className="sticky top-0 z-50 glass-panel border-b border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Brand Logo */}
-            <Link to="/" className="flex items-center gap-2 group">
+            {/* Brand Logo - Links to /admin for Admin, /discover for User, / for Guest */}
+            <Link to={logoTarget} className="flex items-center gap-2 group">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 via-indigo-500 to-amber-400 p-0.5 shadow-lg shadow-rose-500/20 group-hover:scale-105 transition-transform">
                 <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
                   <Heart className="w-5 h-5 text-rose-500 fill-rose-500 animate-pulse" />

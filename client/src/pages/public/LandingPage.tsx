@@ -1,9 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
 import { motion } from 'framer-motion';
-import { Heart, Sparkles, Zap, MessageSquare, ArrowRight } from 'lucide-react';
+import { Heart, Sparkles, Zap, MessageSquare, ArrowRight, Shield } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  // If user is already logged in, redirect directly to their main dashboard
+  if (isAuthenticated && user) {
+    if (user.role === 'Admin') {
+      return <Navigate to="/admin" replace />;
+    }
+    return <Navigate to="/discover" replace />;
+  }
+
   return (
     <div className="space-y-24 py-6">
       {/* Hero Section */}
