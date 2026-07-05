@@ -4,6 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
 import { connectDB } from './config/db.js';
 import { errorHandler } from './middlewares/errorHandlerMiddleware.js';
 import { initSocket } from './services/socketService.js';
@@ -55,6 +56,7 @@ app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'online',
     app: 'SoulSync Platform API',
+    dbState: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
     timestamp: new Date().toISOString(),
   });
 });
@@ -67,15 +69,17 @@ const PORT = process.env.PORT || 5000;
 // Start Server HTTP Listener Immediately for Render Health Checks
 server.listen(PORT, () => {
   console.log(`[Server] SoulSync Backend running on port ${PORT}`);
-  
-  // Asynchronously connect database and run seeders
+
+  // Asynchronously connect database and run seeders only if DB connected
   connectDB().then(async () => {
-    try {
-      await seedAdminUser();
-      await seedQuestions();
-      await seedInterests();
-    } catch (e: any) {
-      console.error(`[Seeder Error]: ${e.message}`);
+    if (mongoose.connection.readyState === 1) {
+      try {
+        await seedAdminUser();
+        await seedQuestions();
+        await seedInterests();
+      } catch (e: any) {
+        console.error(`[Seeder Error]: ${e.message}`);
+      }
     }
   });
 });
