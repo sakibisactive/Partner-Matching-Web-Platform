@@ -23,7 +23,7 @@ const generateTokens = (id: string) => {
 
 /**
  * Step 1: Initiate Registration
- * Validates details, generates 6-digit OTP code, and emails it.
+ * Validates details, generates 6-digit OTP code, and emails it via Brevo HTTPS API.
  * NO USER IS CREATED IN MONGODB UNTIL OTP IS VERIFIED!
  */
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -38,6 +38,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
     // Generate 6-digit OTP code
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`[SOULSYNC OTP GENERATED FOR ${email}]: ${otpCode}`);
 
     // Create a temporary pending registration JWT token (valid for 15 mins)
     const secret = process.env.JWT_SECRET || 'super_secret_jwt_key_partner_match_2026';
@@ -55,9 +56,9 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     // Return instant response to frontend with pendingToken (NO DB INSERTION YET)
     res.status(200).json({
       success: true,
-      message: `6-digit OTP code sent to ${email}. Enter code to complete registration.`,
+      message: `6-digit OTP code sent to ${email}. Check inbox & spam folder!`,
       pendingToken,
-      otpCode, // Returned for testing convenience
+      otpCode, // Returned for testing & dev convenience
     });
   } catch (err: any) {
     next(err);
@@ -230,6 +231,8 @@ export const sendOTP = async (req: Request, res: Response, next: NextFunction): 
     }
 
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`[SOULSYNC RESEND OTP FOR ${email}]: ${otpCode}`);
+
     user.verificationToken = otpCode;
     await user.save();
 

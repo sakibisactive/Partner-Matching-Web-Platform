@@ -15,6 +15,7 @@ export const RegisterPage: React.FC = () => {
   const [otpCode, setOtpCode] = useState('');
 
   const [pendingToken, setPendingToken] = useState('');
+  const [devOtpCode, setDevOtpCode] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [successInfo, setSuccessInfo] = useState('');
 
@@ -30,7 +31,10 @@ export const RegisterPage: React.FC = () => {
     try {
       const res = await registerUser({ name, email, password, gender, age }).unwrap();
       setPendingToken(res.pendingToken);
-      setSuccessInfo(`6-digit OTP sent to ${email}. Check your email inbox!`);
+      if (res.otpCode) {
+        setDevOtpCode(res.otpCode);
+      }
+      setSuccessInfo(`6-digit OTP sent to ${email}. Check your email inbox or spam folder!`);
       setStep('verify-otp');
     } catch (err: any) {
       setErrorMessage(err?.data?.message || 'Registration failed. Please try again.');
@@ -83,9 +87,21 @@ export const RegisterPage: React.FC = () => {
         )}
 
         {successInfo && step === 'verify-otp' && (
-          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center gap-2">
-            <Sparkles className="w-4 h-4 flex-shrink-0" />
-            <span>{successInfo}</span>
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs space-y-2">
+            <div className="flex items-center gap-2 font-semibold">
+              <Sparkles className="w-4 h-4 flex-shrink-0" />
+              <span>{successInfo}</span>
+            </div>
+            {devOtpCode && (
+              <div className="p-2.5 rounded-lg bg-slate-900/80 border border-emerald-500/40 text-center">
+                <span className="text-[11px] text-slate-400 uppercase tracking-widest block font-medium">
+                  OTP Code (Dev Preview):
+                </span>
+                <span className="text-lg font-mono font-extrabold tracking-widest text-emerald-400">
+                  {devOtpCode}
+                </span>
+              </div>
+            )}
           </div>
         )}
 
