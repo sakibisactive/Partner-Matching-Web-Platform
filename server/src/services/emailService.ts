@@ -11,6 +11,7 @@ export const sendEmail = async (options: {
   // 1. Try Brevo HTTPS REST API (Port 443 - Immune to cloud SMTP port blocks on Render)
   if (apiKey && (apiKey.startsWith('xkeysib-') || apiKey.startsWith('xsmtpsib-'))) {
     try {
+      const senderEmail = process.env.SMTP_USER || 'shahriarsakib1205@gmail.com';
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
@@ -21,7 +22,7 @@ export const sendEmail = async (options: {
         body: JSON.stringify({
           sender: {
             name: 'SoulSync Support',
-            email: process.env.SMTP_USER || 'b0e13d001@smtp-brevo.com',
+            email: senderEmail,
           },
           to: [{ email: options.to }],
           subject: options.subject,
@@ -31,7 +32,7 @@ export const sendEmail = async (options: {
       });
 
       if (response.ok) {
-        console.log(`[Brevo HTTPS API] Email successfully sent to ${options.to}`);
+        console.log(`[Brevo HTTPS API] Email successfully sent to ${options.to} from ${senderEmail}`);
         return true;
       }
 
@@ -45,7 +46,7 @@ export const sendEmail = async (options: {
   // 2. Fallback to Nodemailer SMTP Port 465 (SSL) / 2525
   try {
     const host = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
-    const user = process.env.SMTP_USER;
+    const user = process.env.SMTP_USER || 'shahriarsakib1205@gmail.com';
     const pass = process.env.SMTP_PASS;
 
     if (user && pass) {
@@ -61,7 +62,7 @@ export const sendEmail = async (options: {
       });
 
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"SoulSync Support" <b0e13d001@smtp-brevo.com>',
+        from: process.env.EMAIL_FROM || '"SoulSync Support" <shahriarsakib1205@gmail.com>',
         to: options.to,
         subject: options.subject,
         text: options.text,
