@@ -1,9 +1,19 @@
+/// <reference types="vite/client" />
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+const getBaseUrl = () => {
+  const envUrl = (import.meta as any).env?.VITE_API_URL;
+  if (envUrl) {
+    const raw = envUrl.replace(/\/$/, '');
+    return raw.endsWith('/api') ? raw : `${raw}/api`;
+  }
+  return '/api';
+};
 
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: '/api',
+    baseUrl: getBaseUrl(),
     prepareHeaders: (headers) => {
       const token = localStorage.getItem('soul_token');
       if (token) {
