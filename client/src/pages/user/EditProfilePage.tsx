@@ -9,7 +9,7 @@ import {
   useAddPhotoMutation,
 } from '../../redux/services/profileApi';
 import { motion } from 'framer-motion';
-import { Save, Sparkles, CheckCircle2, Sliders, Image, ListChecks, Heart } from 'lucide-react';
+import { Save, Sparkles, CheckCircle2, Sliders, Image, ListChecks, Share2, Search } from 'lucide-react';
 
 export const EditProfilePage: React.FC = () => {
   const { data: meData, refetch: refetchMe } = useGetMeQuery({});
@@ -21,7 +21,7 @@ export const EditProfilePage: React.FC = () => {
   const [updateInterests] = useUpdateInterestsMutation();
   const [addPhoto] = useAddPhotoMutation();
 
-  const [activeTab, setActiveTab] = useState<'basic' | 'personality' | 'interests' | 'photos'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'social' | 'personality' | 'interests' | 'photos'>('basic');
   const [savedSuccessMessage, setSavedSuccessMessage] = useState('');
 
   // Basic Info state
@@ -38,11 +38,18 @@ export const EditProfilePage: React.FC = () => {
   const [drinking, setDrinking] = useState('Socially');
   const [exercise, setExercise] = useState('Sometimes');
 
+  // Optional Social Links state
+  const [facebook, setFacebook] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [snapchat, setSnapchat] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+
   // Personality 50 answers state
   const [answers, setAnswers] = useState<Record<number, number>>({});
 
-  // Interests state
+  // Interests state & Search
   const [selectedInterestIds, setSelectedInterestIds] = useState<string[]>([]);
+  const [hobbySearch, setHobbySearch] = useState('');
 
   // Photo URL input state
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
@@ -61,6 +68,13 @@ export const EditProfilePage: React.FC = () => {
         setSmoking(p.lifestyle.smoking || 'Never');
         setDrinking(p.lifestyle.drinking || 'Socially');
         setExercise(p.lifestyle.exercise || 'Sometimes');
+      }
+
+      if (p.socialLinks) {
+        setFacebook(p.socialLinks.facebook || '');
+        setInstagram(p.socialLinks.instagram || '');
+        setSnapchat(p.socialLinks.snapchat || '');
+        setWhatsapp(p.socialLinks.whatsapp || '');
       }
 
       if (p.personalityAnswers) {
@@ -96,6 +110,18 @@ export const EditProfilePage: React.FC = () => {
     } catch (err) {}
   };
 
+  const handleSaveSocial = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await updateProfile({
+        socialLinks: { facebook, instagram, snapchat, whatsapp },
+      }).unwrap();
+      setSavedSuccessMessage('Social Media accounts saved!');
+      setTimeout(() => setSavedSuccessMessage(''), 3000);
+      refetchMe();
+    } catch (err) {}
+  };
+
   const handleSavePersonality = async () => {
     const formattedAnswers = Object.entries(answers).map(([qNum, ans]) => ({
       questionNumber: parseInt(qNum, 10),
@@ -121,7 +147,7 @@ export const EditProfilePage: React.FC = () => {
   const handleSaveInterests = async () => {
     try {
       await updateInterests(selectedInterestIds).unwrap();
-      setSavedSuccessMessage('Interests updated!');
+      setSavedSuccessMessage('World hobbies updated!');
       setTimeout(() => setSavedSuccessMessage(''), 3000);
       refetchMe();
     } catch (err) {}
@@ -138,14 +164,19 @@ export const EditProfilePage: React.FC = () => {
     } catch (err) {}
   };
 
+  const filteredInterests = interestsData?.interests?.filter((item: any) =>
+    item.name.toLowerCase().includes(hobbySearch.toLowerCase()) ||
+    item.category.toLowerCase().includes(hobbySearch.toLowerCase())
+  );
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Header & Tabs */}
       <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-white font-outfit">Edit Profile</h1>
-            <p className="text-slate-400 text-sm">Update your information, photos, interests, and 50 personality questions.</p>
+            <h1 className="text-3xl font-extrabold text-white font-outfit uppercase">Edit FIND TRU LUV Profile</h1>
+            <p className="text-slate-400 text-sm">Customize your basic info, social media, hobbies, photos, and 50 questions.</p>
           </div>
           {savedSuccessMessage && (
             <div className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1.5 animate-pulse">
@@ -160,41 +191,51 @@ export const EditProfilePage: React.FC = () => {
             onClick={() => setActiveTab('basic')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
               activeTab === 'basic'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
+                ? 'bg-indigo-600 text-white shadow-lg'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
-            <Sliders className="w-4 h-4" /> Basic & Lifestyle
+            <Sliders className="w-4 h-4" /> Basic Details
           </button>
           <button
-            onClick={() => setActiveTab('personality')}
+            onClick={() => setActiveTab('social')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'personality'
-                ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/20'
+              activeTab === 'social'
+                ? 'bg-rose-600 text-white shadow-lg'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
-            <ListChecks className="w-4 h-4" /> 50 Personality Questions ({Object.keys(answers).length}/50)
+            <Share2 className="w-4 h-4" /> Social Links (Optional)
           </button>
           <button
             onClick={() => setActiveTab('interests')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
               activeTab === 'interests'
-                ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20'
+                ? 'bg-amber-600 text-white shadow-lg'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
-            <Sparkles className="w-4 h-4" /> Passions & Interests
+            <Sparkles className="w-4 h-4" /> World Hobbies ({selectedInterestIds.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('personality')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+              activeTab === 'personality'
+                ? 'bg-purple-600 text-white shadow-lg'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+            }`}
+          >
+            <ListChecks className="w-4 h-4" /> 50 Qs ({Object.keys(answers).length}/50)
           </button>
           <button
             onClick={() => setActiveTab('photos')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
               activeTab === 'photos'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                ? 'bg-emerald-600 text-white shadow-lg'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
             }`}
           >
-            <Image className="w-4 h-4" /> Photos & Gallery
+            <Image className="w-4 h-4" /> Photos
           </button>
         </div>
       </div>
@@ -202,7 +243,7 @@ export const EditProfilePage: React.FC = () => {
       {/* Tab 1: Basic & Lifestyle */}
       {activeTab === 'basic' && (
         <form onSubmit={handleSaveBasic} className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6">
-          <h2 className="text-xl font-bold text-white font-outfit">Basic Details</h2>
+          <h2 className="text-xl font-bold text-white font-outfit">Basic Information</h2>
 
           <div>
             <label className="block text-xs font-semibold text-slate-300 mb-2">Bio / Story</label>
@@ -286,7 +327,122 @@ export const EditProfilePage: React.FC = () => {
         </form>
       )}
 
-      {/* Tab 2: 50 Likert-Scale Personality Questions */}
+      {/* Tab 2: Optional Social Media Links */}
+      {activeTab === 'social' && (
+        <form onSubmit={handleSaveSocial} className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6">
+          <div>
+            <h2 className="text-xl font-bold text-white font-outfit">Social Media Handles (Optional)</h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Adding social links is not mandatory. If added, your matches can connect with you directly.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Facebook Profile URL</label>
+              <input
+                type="url"
+                value={facebook}
+                onChange={(e) => setFacebook(e.target.value)}
+                placeholder="https://facebook.com/username (Optional)"
+                className="w-full p-3 rounded-xl glass-input text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Instagram Username / Handle</label>
+              <input
+                type="text"
+                value={instagram}
+                onChange={(e) => setInstagram(e.target.value)}
+                placeholder="@username (Optional)"
+                className="w-full p-3 rounded-xl glass-input text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Snapchat Username</label>
+              <input
+                type="text"
+                value={snapchat}
+                onChange={(e) => setSnapchat(e.target.value)}
+                placeholder="snap_username (Optional)"
+                className="w-full p-3 rounded-xl glass-input text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">WhatsApp Number / Link</label>
+              <input
+                type="text"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="+1234567890 (Optional)"
+                className="w-full p-3 rounded-xl glass-input text-sm"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            className="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg"
+          >
+            <Save className="w-4 h-4" /> Save Social Links
+          </button>
+        </form>
+      )}
+
+      {/* Tab 3: World Hobbies Selector */}
+      {activeTab === 'interests' && (
+        <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-bold text-white font-outfit">Comprehensive World Hobby Options</h2>
+              <p className="text-xs text-slate-400">Select any hobbies below to automate compatibility matching (Jaccard Index).</p>
+            </div>
+            <button
+              onClick={handleSaveInterests}
+              className="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg"
+            >
+              <Save className="w-4 h-4" /> Save Selected Hobbies
+            </button>
+          </div>
+
+          {/* Search Box */}
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={hobbySearch}
+              onChange={(e) => setHobbySearch(e.target.value)}
+              placeholder="Search world hobbies (e.g., Scuba Diving, Tennis, Painting, Chess)..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl glass-input text-xs"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2 max-h-[50vh] overflow-y-auto pr-2">
+            {filteredInterests?.map((item: any) => {
+              const isSelected = selectedInterestIds.includes(item._id);
+              return (
+                <button
+                  key={item._id}
+                  type="button"
+                  onClick={() => toggleInterest(item._id)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
+                    isSelected
+                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-md'
+                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800'
+                  }`}
+                >
+                  #{item.name} <span className="text-[10px] opacity-60">({item.category})</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Tab 4: 50 Likert-Scale Personality Questions */}
       {activeTab === 'personality' && (
         <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6">
           <div className="flex items-center justify-between">
@@ -296,7 +452,7 @@ export const EditProfilePage: React.FC = () => {
             </div>
             <button
               onClick={handleSavePersonality}
-              className="px-6 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg"
+              className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg"
             >
               <Save className="w-4 h-4" /> Save All 50 Answers
             </button>
@@ -313,7 +469,6 @@ export const EditProfilePage: React.FC = () => {
                   </span>
                 </div>
 
-                {/* 1-5 Likert scale buttons */}
                 <div className="flex items-center justify-between gap-2 max-w-md mx-auto pt-1">
                   <span className="text-[10px] text-slate-500">Strongly Disagree</span>
                   {[1, 2, 3, 4, 5].map((val) => (
@@ -338,45 +493,7 @@ export const EditProfilePage: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 3: Passions & Interests */}
-      {activeTab === 'interests' && (
-        <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-white font-outfit">Select Your Hobbies & Interests</h2>
-              <p className="text-xs text-slate-400">Used by the Jaccard Similarity algorithm (25% weight).</p>
-            </div>
-            <button
-              onClick={handleSaveInterests}
-              className="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg"
-            >
-              <Save className="w-4 h-4" /> Save Interests
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            {interestsData?.interests?.map((item: any) => {
-              const isSelected = selectedInterestIds.includes(item._id);
-              return (
-                <button
-                  key={item._id}
-                  type="button"
-                  onClick={() => toggleInterest(item._id)}
-                  className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all border ${
-                    isSelected
-                      ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-lg shadow-amber-500/10'
-                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:bg-slate-800'
-                  }`}
-                >
-                  #{item.name}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Tab 4: Photo Gallery */}
+      {/* Tab 5: Photo Gallery */}
       {activeTab === 'photos' && (
         <div className="glass-panel p-8 rounded-3xl border border-slate-800 space-y-6">
           <h2 className="text-xl font-bold text-white font-outfit">Photo Gallery</h2>

@@ -10,6 +10,14 @@ export const profileApi = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ['Profile', 'User'],
     }),
+    upgradeSubscription: builder.mutation({
+      query: (data) => ({
+        url: '/profile/upgrade',
+        method: 'POST',
+        body: data,
+      }),
+      invalidatesTags: ['Profile', 'User'],
+    }),
     submitPersonality: builder.mutation({
       query: (answers) => ({
         url: '/profile/personality',
@@ -57,6 +65,7 @@ export const profileApi = apiSlice.injectEndpoints({
 
 export const {
   useUpdateProfileMutation,
+  useUpgradeSubscriptionMutation,
   useSubmitPersonalityMutation,
   useUpdateInterestsMutation,
   useUpdatePreferencesMutation,

@@ -8,7 +8,47 @@ import { Match } from '../models/Match.js';
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const users = await User.find({}).sort({ createdAt: -1 });
-    res.status(200).json({ success: true, count: users.length, users });
+    const userProfiles = await Profile.find({}).populate('interests');
+    
+    const profileMap = new Map();
+    userProfiles.forEach((p) => profileMap.set(p.userId.toString(), p));
+
+    const enrichedUsers = users.map((u) => {
+      const p = profileMap.get(u._id.toString());
+      return {
+        _id: u._id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        isVerified: u.isVerified,
+        status: u.status,
+        createdAt: u.createdAt,
+        profile: p || null,
+      };
+    });
+
+    res.status(200).json({ success: true, count: enrichedUsers.length, users: enrichedUsers });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+export const getUserFullDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const user = await User.findById(id).select('-password');
+    if (!user) {
+      res.status(404).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    const profile = await Profile.findOne({ userId: id }).populate('interests preferences.interests');
+
+    res.status(200).json({
+      success: true,
+      user,
+      profile,
+    });
   } catch (err: any) {
     next(err);
   }

@@ -30,19 +30,17 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleDemoLogin = async (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('password123');
+  const handleDemoAdmin = async () => {
+    const adminEmail = 'admin@findtruluv.com';
+    const adminPass = 'findtruluvwithsakib';
+    setEmail(adminEmail);
+    setPassword(adminPass);
     try {
-      const res = await login({ email: demoEmail, password: 'password123' }).unwrap();
+      const res = await login({ email: adminEmail, password: adminPass }).unwrap();
       dispatch(setCredentials({ user: res.user, token: res.accessToken }));
-      if (res.user.role === 'Admin') {
-        navigate('/admin');
-      } else {
-        navigate('/discover');
-      }
+      navigate('/admin');
     } catch (err: any) {
-      setErrorMessage(err?.data?.message || 'Demo user login failed.');
+      setErrorMessage(err?.data?.message || 'Master admin login failed.');
     }
   };
 
@@ -50,11 +48,11 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-[80vh] flex items-center justify-center py-12">
       <div className="w-full max-w-md space-y-8 glass-panel p-8 sm:p-10 rounded-3xl border border-slate-800 shadow-2xl">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-rose-500 mx-auto flex items-center justify-center text-white shadow-lg shadow-rose-500/20">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-600 to-indigo-500 mx-auto flex items-center justify-center text-white shadow-lg shadow-rose-500/20">
             <Heart className="w-6 h-6 fill-white" />
           </div>
-          <h2 className="text-3xl font-extrabold text-white tracking-tight font-outfit">Welcome Back</h2>
-          <p className="text-slate-400 text-sm">Sign in to your SoulSync account</p>
+          <h2 className="text-3xl font-extrabold text-white tracking-tight font-outfit uppercase">FIND TRU LUV Login</h2>
+          <p className="text-slate-400 text-sm">Sign in to your compatibility matching account</p>
         </div>
 
         {errorMessage && (
@@ -102,7 +100,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-indigo-600 via-rose-500 to-amber-500 hover:opacity-95 shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-rose-600 via-indigo-600 to-amber-500 hover:opacity-95 shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -114,23 +112,15 @@ export const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        {/* Demo Fast Login Buttons */}
+        {/* Master Admin Fast Login Button */}
         <div className="pt-4 border-t border-slate-800/80 space-y-3">
-          <p className="text-center text-xs text-slate-500 font-medium">Quick Demo Credentials</p>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => handleDemoLogin('user@example.com')}
-              className="py-2.5 px-3 rounded-xl glass-card hover:bg-slate-800 text-xs font-semibold text-indigo-400 border border-slate-700/60 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5" /> Demo User
-            </button>
-            <button
-              onClick={() => handleDemoLogin('admin@example.com')}
-              className="py-2.5 px-3 rounded-xl glass-card hover:bg-slate-800 text-xs font-semibold text-purple-400 border border-slate-700/60 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5" /> Demo Admin
-            </button>
-          </div>
+          <p className="text-center text-xs text-slate-500 font-medium">Platform Master Admin</p>
+          <button
+            onClick={handleDemoAdmin}
+            className="w-full py-2.5 px-3 rounded-xl glass-card hover:bg-slate-800 text-xs font-semibold text-purple-400 border border-slate-700/60 transition-colors flex items-center justify-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> Quick Master Admin Login (admin@findtruluv.com)
+          </button>
         </div>
 
         <p className="text-center text-xs text-slate-400">

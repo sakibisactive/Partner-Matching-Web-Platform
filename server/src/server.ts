@@ -9,6 +9,7 @@ import { errorHandler } from './middlewares/errorHandlerMiddleware.js';
 import { initSocket } from './services/socketService.js';
 import { seedQuestions } from './seeders/questionSeeder.js';
 import { seedInterests } from './seeders/interestSeeder.js';
+import { seedAdminUser } from './seeders/adminSeeder.js';
 
 // Route Imports
 import authRoutes from './routes/authRoutes.js';
@@ -54,7 +55,7 @@ app.use('/api/admin', adminRoutes);
 app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'online',
-    app: 'Partner Matching Platform API',
+    app: 'FIND TRU LUV Platform API',
     timestamp: new Date().toISOString(),
   });
 });
@@ -66,11 +67,12 @@ const PORT = process.env.PORT || 5000;
 
 // Connect DB, Run Seeders, and Start Server
 connectDB().then(async () => {
+  await seedAdminUser();
   await seedQuestions();
   await seedInterests();
 
   server.listen(PORT, () => {
-    console.log(`[Server] Partner Matching Backend running on http://localhost:${PORT}`);
+    console.log(`[Server] FIND TRU LUV Backend running on http://localhost:${PORT}`);
   });
 });
 

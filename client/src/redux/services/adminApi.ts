@@ -6,6 +6,10 @@ export const adminApi = apiSlice.injectEndpoints({
       query: () => '/admin/users',
       providesTags: ['User'],
     }),
+    getUserFullDetails: builder.query({
+      query: (userId) => `/admin/user/${userId}`,
+      providesTags: ['User', 'Profile'],
+    }),
     banUser: builder.mutation({
       query: (userId) => ({
         url: `/admin/ban/${userId}`,
@@ -62,6 +66,7 @@ export const adminApi = apiSlice.injectEndpoints({
 
 export const {
   useGetAllUsersQuery,
+  useGetUserFullDetailsQuery,
   useBanUserMutation,
   useVerifyUserMutation,
   useDeleteUserMutation,

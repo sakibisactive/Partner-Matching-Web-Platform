@@ -19,6 +19,13 @@ export interface ILifestyle {
   pets: 'None' | 'Cat' | 'Dog' | 'Both' | 'Lover';
 }
 
+export interface ISocialLinks {
+  facebook?: string;
+  instagram?: string;
+  snapchat?: string;
+  whatsapp?: string;
+}
+
 export interface IPreferences {
   minAge: number;
   maxAge: number;
@@ -46,6 +53,9 @@ export interface IProfile extends Document {
   religion?: string;
   relationshipGoal?: 'Long-term' | 'Casual' | 'Friendship' | 'Marriage';
   lifestyle: ILifestyle;
+  socialLinks?: ISocialLinks;
+  isPremium: boolean;
+  membershipTier: 'Free' | 'Gold' | 'VIP';
   personalityAnswers: IPersonalityAnswer[];
   interests: mongoose.Types.ObjectId[];
   preferences: IPreferences;
@@ -116,7 +126,7 @@ const ProfileSchema: Schema<IProfile> = new Schema(
       },
       coordinates: {
         type: [Number], // [lng, lat]
-        default: [-74.006, 40.7128], // Default coordinates
+        default: [-74.006, 40.7128],
       },
     },
     religion: {
@@ -134,6 +144,21 @@ const ProfileSchema: Schema<IProfile> = new Schema(
       exercise: { type: String, enum: ['Never', 'Sometimes', 'Often', 'Daily'], default: 'Sometimes' },
       diet: { type: String, enum: ['Anything', 'Vegetarian', 'Vegan', 'Keto', 'Halal'], default: 'Anything' },
       pets: { type: String, enum: ['None', 'Cat', 'Dog', 'Both', 'Lover'], default: 'Lover' },
+    },
+    socialLinks: {
+      facebook: { type: String, default: '' },
+      instagram: { type: String, default: '' },
+      snapchat: { type: String, default: '' },
+      whatsapp: { type: String, default: '' },
+    },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
+    membershipTier: {
+      type: String,
+      enum: ['Free', 'Gold', 'VIP'],
+      default: 'Free',
     },
     personalityAnswers: [
       {

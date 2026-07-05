@@ -6,7 +6,7 @@ import { User } from '../models/User.js';
 export const updateProfile = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user!._id;
-    const { bio, age, gender, height, education, occupation, city, country, religion, relationshipGoal, lifestyle, coordinates } = req.body;
+    const { bio, age, gender, height, education, occupation, city, country, religion, relationshipGoal, lifestyle, socialLinks, coordinates } = req.body;
 
     const updateFields: any = {};
     if (bio !== undefined) updateFields.bio = bio;
@@ -14,12 +14,12 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
     if (gender !== undefined) updateFields.gender = gender;
     if (height !== undefined) updateFields.height = height;
     if (education !== undefined) updateFields.education = education;
-    if (occupation !== undefined) updateFields.occupation = occupation;
     if (city !== undefined) updateFields.city = city;
     if (country !== undefined) updateFields.country = country;
     if (religion !== undefined) updateFields.religion = religion;
     if (relationshipGoal !== undefined) updateFields.relationshipGoal = relationshipGoal;
     if (lifestyle !== undefined) updateFields.lifestyle = lifestyle;
+    if (socialLinks !== undefined) updateFields.socialLinks = socialLinks;
 
     if (coordinates && Array.isArray(coordinates) && coordinates.length === 2) {
       updateFields.location = {
@@ -38,6 +38,32 @@ export const updateProfile = async (req: AuthRequest, res: Response, next: NextF
       success: true,
       message: 'Profile updated successfully',
       profile: updatedProfile,
+    });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+export const upgradeSubscription = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.user!._id;
+    const { membershipTier } = req.body; // 'Gold' | 'VIP'
+
+    const profile = await Profile.findOne({ userId });
+    if (!profile) {
+      res.status(404).json({ success: false, message: 'Profile not found' });
+      return;
+    }
+
+    profile.isPremium = true;
+    profile.membershipTier = membershipTier || 'Gold';
+    await profile.save();
+
+    res.status(200).json({
+      success: true,
+      message: `🎉 Membership upgraded to ${profile.membershipTier}!`,
+      membershipTier: profile.membershipTier,
+      isPremium: true,
     });
   } catch (err: any) {
     next(err);

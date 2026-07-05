@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getAllUsers,
+  getUserFullDetails,
   banUser,
   verifyUser,
   deleteUser,
@@ -19,6 +20,7 @@ router.use(protect);
 router.use(restrictTo('Admin'));
 
 router.get('/users', getAllUsers);
+router.get('/user/:id', getUserFullDetails);
 router.patch('/ban/:id', banUser);
 router.patch('/verify/:id', verifyUser);
 router.delete('/user/:id', deleteUser);

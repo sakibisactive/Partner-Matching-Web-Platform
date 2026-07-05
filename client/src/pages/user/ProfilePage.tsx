@@ -1,7 +1,7 @@
 import React from 'react';
 import { useGetMeQuery } from '../../redux/services/authApi';
 import { Link } from 'react-router-dom';
-import { User, MapPin, Briefcase, GraduationCap, Edit3, CheckCircle2, Heart, Sparkles, Sliders } from 'lucide-react';
+import { MapPin, Edit3, CheckCircle2, Sparkles, Sliders, Facebook, Instagram, MessageCircle, PhoneCall } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
   const { data, isLoading } = useGetMeQuery({});
@@ -39,7 +39,7 @@ export const ProfilePage: React.FC = () => {
               </h1>
               {user?.isVerified && (
                 <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Verified Badge
                 </span>
               )}
             </div>
@@ -51,11 +51,42 @@ export const ProfilePage: React.FC = () => {
             <p className="text-slate-300 text-sm italic max-w-xl">
               "{profile?.bio || 'No bio written yet. Click Edit Profile to express your story!'}"
             </p>
+
+            {/* Social Media Accounts Buttons */}
+            {profile?.socialLinks && (
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-2">
+                {profile.socialLinks.facebook && (
+                  <a
+                    href={profile.socialLinks.facebook}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1 rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-400 border border-blue-500/30 text-xs font-semibold flex items-center gap-1.5"
+                  >
+                    <Facebook className="w-3.5 h-3.5" /> Facebook
+                  </a>
+                )}
+                {profile.socialLinks.instagram && (
+                  <span className="px-3 py-1 rounded-xl bg-pink-600/20 text-pink-400 border border-pink-500/30 text-xs font-semibold flex items-center gap-1.5">
+                    <Instagram className="w-3.5 h-3.5" /> {profile.socialLinks.instagram}
+                  </span>
+                )}
+                {profile.socialLinks.snapchat && (
+                  <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5">
+                    <MessageCircle className="w-3.5 h-3.5" /> {profile.socialLinks.snapchat}
+                  </span>
+                )}
+                {profile.socialLinks.whatsapp && (
+                  <span className="px-3 py-1 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5">
+                    <PhoneCall className="w-3.5 h-3.5" /> {profile.socialLinks.whatsapp}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <Link
             to="/edit-profile"
-            className="px-6 py-3 rounded-2xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors flex items-center gap-2 shadow-lg shadow-indigo-600/20"
+            className="px-6 py-3 rounded-2xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition-colors flex items-center gap-2 shadow-lg"
           >
             <Edit3 className="w-4 h-4" /> Edit Profile & 50 Qs
           </Link>
@@ -92,11 +123,11 @@ export const ProfilePage: React.FC = () => {
         {/* Interests & Personality Status */}
         <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
           <h3 className="text-lg font-bold text-white font-outfit flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-rose-400" /> Passions & Personality Vector
+            <Sparkles className="w-5 h-5 text-rose-400" /> Passions & Hobbies
           </h3>
 
           <div>
-            <span className="text-xs text-slate-400 block mb-2">Selected Interests:</span>
+            <span className="text-xs text-slate-400 block mb-2">Selected World Hobbies:</span>
             {profile?.interests?.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {profile.interests.map((interest: any) => (
@@ -109,7 +140,7 @@ export const ProfilePage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 italic">No interest tags added yet.</p>
+              <p className="text-xs text-slate-500 italic">No hobbies selected yet.</p>
             )}
           </div>
 
