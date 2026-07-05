@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useLoginMutation } from '../../redux/services/authApi';
 import { setCredentials } from '../../redux/slices/authSlice';
-import { Heart, Mail, Lock, LogIn, ShieldAlert, Sparkles } from 'lucide-react';
+import { Heart, Mail, Lock, LogIn, ShieldAlert } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -27,20 +27,6 @@ export const LoginPage: React.FC = () => {
       }
     } catch (err: any) {
       setErrorMessage(err?.data?.message || 'Failed to sign in. Please check credentials.');
-    }
-  };
-
-  const handleDemoAdmin = async () => {
-    const adminEmail = 'admin@findtruluv.com';
-    const adminPass = 'findtruluvwithsakib';
-    setEmail(adminEmail);
-    setPassword(adminPass);
-    try {
-      const res = await login({ email: adminEmail, password: adminPass }).unwrap();
-      dispatch(setCredentials({ user: res.user, token: res.accessToken }));
-      navigate('/admin');
-    } catch (err: any) {
-      setErrorMessage(err?.data?.message || 'Master admin login failed.');
     }
   };
 
@@ -111,17 +97,6 @@ export const LoginPage: React.FC = () => {
             )}
           </button>
         </form>
-
-        {/* Master Admin Fast Login Button */}
-        <div className="pt-4 border-t border-slate-800/80 space-y-3">
-          <p className="text-center text-xs text-slate-500 font-medium">Platform Master Admin</p>
-          <button
-            onClick={handleDemoAdmin}
-            className="w-full py-2.5 px-3 rounded-xl glass-card hover:bg-slate-800 text-xs font-semibold text-purple-400 border border-slate-700/60 transition-colors flex items-center justify-center gap-1.5"
-          >
-            <Sparkles className="w-3.5 h-3.5" /> Quick Master Admin Login (admin@findtruluv.com)
-          </button>
-        </div>
 
         <p className="text-center text-xs text-slate-400">
           Don't have an account?{' '}

@@ -1,7 +1,10 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
-import { Profile } from '../models/Profile.js';
+import { Profile, computeProfileCompletion } from '../models/Profile.js';
 import { User } from '../models/User.js';
+import { Match } from '../models/Match.js';
+import { Like } from '../models/Like.js';
+import { Message } from '../models/Message.js';
 import { computeCompatibility } from '../algorithms/matchingEngine.js';
 
 export const discoverUsers = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
@@ -23,6 +26,30 @@ export const discoverUsers = async (req: AuthRequest, res: Response, next: NextF
     } = req.query;
 
     const myProfile = await Profile.findOne({ userId: currentUserId }).populate('interests');
+    if (!myProfile) {
+      res.status(400).json({
+        success: false,
+        isProfileComplete: false,
+        completionPercentage: 0,
+        missingSections: ['Create your profile first'],
+        users: [],
+      });
+      return;
+    }
+
+    // MANDATORY 100% PROFILE COMPLETION GUARD
+    const completion = computeProfileCompletion(myProfile);
+    if (!completion.isComplete) {
+      res.status(200).json({
+        success: true,
+        isProfileComplete: false,
+        completionPercentage: completion.percentage,
+        missingSections: completion.missingSections,
+        total: 0,
+        users: [],
+      });
+      return;
+    }
 
     const query: any = { userId: { $ne: currentUserId } };
 
@@ -44,17 +71,16 @@ export const discoverUsers = async (req: AuthRequest, res: Response, next: NextF
       .populate('userId', 'name email role isVerified status createdAt')
       .populate('interests');
 
-    // Filter out banned users
-    const validProfiles = rawProfiles.filter(
-      (p) => p.userId && (p.userId as any).status !== 'banned'
-    );
+    // Filter out banned users and incomplete candidate profiles
+    const validProfiles = rawProfiles.filter((p) => {
+      if (!p.userId || (p.userId as any).status === 'banned') return false;
+      const candidateCompletion = computeProfileCompletion(p);
+      return candidateCompletion.isComplete;
+    });
 
     // Compute compatibility scores
     let results = validProfiles.map((candidate) => {
-      const breakdown = myProfile
-        ? computeCompatibility(myProfile, candidate)
-        : { finalScore: 50, personality: 50, interest: 50, lifestyle: 50, age: 50, location: 50 };
-
+      const breakdown = computeCompatibility(myProfile, candidate);
       return {
         candidateId: candidate.userId._id,
         user: candidate.userId,
@@ -70,7 +96,6 @@ export const discoverUsers = async (req: AuthRequest, res: Response, next: NextF
     } else if (sortBy === 'distance') {
       results.sort((a, b) => b.breakdown.location - a.breakdown.location);
     } else {
-      // Default: Compatibility
       results.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
     }
 
@@ -82,11 +107,51 @@ export const discoverUsers = async (req: AuthRequest, res: Response, next: NextF
 
     res.status(200).json({
       success: true,
+      isProfileComplete: true,
+      completionPercentage: 100,
+      missingSections: [],
       total: results.length,
       page: pageNum,
       totalPages: Math.ceil(results.length / limitNum),
       count: paginatedResults.length,
       users: paginatedResults,
+    });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+/**
+ * Self Account Deletion for Standard Users
+ * (Admin accounts CANNOT self-delete)
+ */
+export const deleteMyAccount = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const user = req.user!;
+
+    // ADMIN SELF-DELETION PROTECTION
+    if (user.role === 'Admin') {
+      res.status(403).json({
+        success: false,
+        message: 'Master Admin accounts cannot be self-deleted to maintain platform administration.',
+      });
+      return;
+    }
+
+    const userId = user._id;
+
+    // Delete User & Profile documents
+    await User.findByIdAndDelete(userId);
+    await Profile.findOneAndDelete({ userId });
+
+    // Clean up related matches, likes, and messages
+    await Match.deleteMany({ $or: [{ userA: userId }, { userB: userId }] });
+    await Like.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] });
+    await Message.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] });
+
+    res.status(200).json({
+      success: true,
+      message: 'Your account and all associated data have been permanently deleted.',
     });
   } catch (err: any) {
     next(err);

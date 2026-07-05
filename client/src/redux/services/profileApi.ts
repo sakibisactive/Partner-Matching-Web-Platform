@@ -2,75 +2,75 @@ import { apiSlice } from './apiSlice';
 
 export const profileApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    updateProfile: builder.mutation({
+    getProfile: builder.query<any, void | any>({
+      query: () => '/profile/me',
+      providesTags: ['Profile'],
+    }),
+    updateProfile: builder.mutation<any, Partial<any>>({
       query: (data) => ({
         url: '/profile/me',
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['Profile', 'User'],
+      invalidatesTags: ['Profile'],
     }),
-    upgradeSubscription: builder.mutation({
-      query: (data) => ({
-        url: '/profile/upgrade',
-        method: 'POST',
-        body: data,
-      }),
-      invalidatesTags: ['Profile', 'User'],
+    getQuestions: builder.query<any, void | any>({
+      query: () => '/meta/questions',
+      providesTags: ['Interest'],
     }),
-    submitPersonality: builder.mutation({
+    submitPersonality: builder.mutation<any, { questionNumber: number; answer: number }[]>({
       query: (answers) => ({
         url: '/profile/personality',
-        method: 'PUT',
+        method: 'POST',
         body: { answers },
       }),
       invalidatesTags: ['Profile'],
     }),
-    updateInterests: builder.mutation({
-      query: (interestIds) => ({
-        url: '/profile/interests',
-        method: 'PUT',
-        body: { interestIds },
-      }),
-      invalidatesTags: ['Profile'],
-    }),
-    updatePreferences: builder.mutation({
-      query: (preferences) => ({
-        url: '/profile/preferences',
-        method: 'PUT',
-        body: preferences,
-      }),
-      invalidatesTags: ['Profile'],
-    }),
-    addPhoto: builder.mutation({
-      query: (photoUrl) => ({
-        url: '/profile/photos',
-        method: 'POST',
-        body: { photoUrl },
-      }),
-      invalidatesTags: ['Profile'],
-    }),
-    getProfileByUserId: builder.query({
-      query: (userId) => `/profile/user/${userId}`,
-    }),
-    getQuestions: builder.query({
-      query: () => '/meta/questions',
-    }),
-    getInterests: builder.query({
+    getInterests: builder.query<any, void | any>({
       query: () => '/meta/interests',
       providesTags: ['Interest'],
+    }),
+    updateInterests: builder.mutation<any, string[]>({
+      query: (interests) => ({
+        url: '/profile/interests',
+        method: 'PUT',
+        body: { interests },
+      }),
+      invalidatesTags: ['Profile'],
+    }),
+    addPhoto: builder.mutation<any, string>({
+      query: (url) => ({
+        url: '/profile/photos',
+        method: 'POST',
+        body: { url },
+      }),
+      invalidatesTags: ['Profile'],
+    }),
+    upgradeSubscription: builder.mutation<any, { membershipTier: 'Gold' | 'VIP' }>({
+      query: ({ membershipTier }) => ({
+        url: '/profile/subscription',
+        method: 'POST',
+        body: { membershipTier },
+      }),
+      invalidatesTags: ['Profile'],
+    }),
+    deleteMyAccount: builder.mutation<any, void>({
+      query: () => ({
+        url: '/users/me',
+        method: 'DELETE',
+      }),
     }),
   }),
 });
 
 export const {
+  useGetProfileQuery,
   useUpdateProfileMutation,
-  useUpgradeSubscriptionMutation,
-  useSubmitPersonalityMutation,
-  useUpdateInterestsMutation,
-  useUpdatePreferencesMutation,
-  useAddPhotoMutation,
-  useGetProfileByUserIdQuery,
   useGetQuestionsQuery,
+  useSubmitPersonalityMutation,
   useGetInterestsQuery,
+  useUpdateInterestsMutation,
+  useAddPhotoMutation,
+  useUpgradeSubscriptionMutation,
+  useDeleteMyAccountMutation,
 } = profileApi;

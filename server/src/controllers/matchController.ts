@@ -1,8 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
-import { Profile } from '../models/Profile.js';
+import { Profile, computeProfileCompletion } from '../models/Profile.js';
 import { Match } from '../models/Match.js';
-import { User } from '../models/User.js';
 import { computeCompatibility } from '../algorithms/matchingEngine.js';
 
 export const computeMatches = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
@@ -12,14 +11,27 @@ export const computeMatches = async (req: AuthRequest, res: Response, next: Next
     // Fetch user's profile
     const myProfile = await Profile.findOne({ userId: currentUserId }).populate('interests');
     if (!myProfile) {
-      res.status(404).json({ success: false, message: 'Profile not completed' });
+      res.status(404).json({ success: false, message: 'Profile not found' });
+      return;
+    }
+
+    // MANDATORY 100% PROFILE COMPLETION GUARD
+    const completion = computeProfileCompletion(myProfile);
+    if (!completion.isComplete) {
+      res.status(200).json({
+        success: true,
+        isProfileComplete: false,
+        completionPercentage: completion.percentage,
+        missingSections: completion.missingSections,
+        count: 0,
+        matches: [],
+      });
       return;
     }
 
     // Filter candidate profiles
     const query: any = { userId: { $ne: currentUserId } };
 
-    // Preferred gender filter if specified
     if (myProfile.preferences?.gender && myProfile.preferences.gender.length > 0) {
       query.gender = { $in: myProfile.preferences.gender };
     }
@@ -32,6 +44,9 @@ export const computeMatches = async (req: AuthRequest, res: Response, next: Next
 
     for (const candidate of candidateProfiles) {
       if (!candidate.userId || (candidate.userId as any).status === 'banned') continue;
+
+      const candidateCompletion = computeProfileCompletion(candidate);
+      if (!candidateCompletion.isComplete) continue; // Only match 100% completed candidate profiles
 
       const breakdown = computeCompatibility(myProfile, candidate);
 
@@ -74,6 +89,9 @@ export const computeMatches = async (req: AuthRequest, res: Response, next: Next
 
     res.status(200).json({
       success: true,
+      isProfileComplete: true,
+      completionPercentage: 100,
+      missingSections: [],
       count: top20Matches.length,
       matches: top20Matches,
     });

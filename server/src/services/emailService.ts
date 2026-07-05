@@ -7,26 +7,31 @@ export const sendEmail = async (options: {
   html?: string;
 }): Promise<boolean> => {
   try {
-    // If SMTP credentials exist, use them; otherwise log to console for development
-    if (process.env.SMTP_USER && process.env.SMTP_USER !== 'your_brevo_email@example.com') {
+    const host = process.env.SMTP_HOST || 'smtp-relay.brevo.com';
+    const port = parseInt(process.env.SMTP_PORT || '587', 10);
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+
+    if (user && pass) {
       const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-        port: parseInt(process.env.SMTP_PORT || '587', 10),
-        secure: false,
+        host,
+        port,
+        secure: false, // TLS via port 587
         auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
+          user,
+          pass,
         },
       });
 
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"SoulSync Platform" <noreply@partnermatch.com>',
+        from: process.env.EMAIL_FROM || '"SoulSync Platform" <b0e13d001@smtp-brevo.com>',
         to: options.to,
         subject: options.subject,
         text: options.text,
         html: options.html,
       });
-      console.log(`[Email Service] Verification/OTP Email sent to ${options.to}`);
+
+      console.log(`[Brevo Email Service] Email successfully sent to ${options.to}`);
       return true;
     }
 
@@ -37,4 +42,30 @@ export const sendEmail = async (options: {
     console.error(`[Email Error] Failed to send email to ${options.to}: ${error.message}`);
     return false;
   }
+};
+
+export const sendOTPEmail = async (email: string, name: string, otpCode: string): Promise<boolean> => {
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0f172a; color: #f8fafc; padding: 30px; border-radius: 16px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="color: #f43f5e; margin: 0;">❤️ SoulSync</h1>
+        <p style="color: #94a3b8; font-size: 14px;">AI Compatibility Partner Matching</p>
+      </div>
+      <div style="background-color: #1e293b; padding: 20px; border-radius: 12px; text-align: center;">
+        <h2 style="color: #ffffff; margin-top: 0;">Account Verification Code</h2>
+        <p style="color: #cbd5e1;">Hello <strong>${name}</strong>, use the 6-digit OTP code below to verify your email address:</p>
+        <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #38bdf8; background-color: #0f172a; padding: 15px; border-radius: 8px; display: inline-block; margin: 15px 0;">
+          ${otpCode}
+        </div>
+        <p style="color: #64748b; font-size: 12px;">Valid for 15 minutes. Do not share this OTP with anyone.</p>
+      </div>
+    </div>
+  `;
+
+  return await sendEmail({
+    to: email,
+    subject: `❤️ ${otpCode} is your SoulSync Verification OTP Code`,
+    text: `Hello ${name}, your 6-digit verification OTP code is: ${otpCode}`,
+    html: htmlContent,
+  });
 };

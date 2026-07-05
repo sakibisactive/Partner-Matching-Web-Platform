@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
 import { User } from '../models/User.js';
 import { Profile } from '../models/Profile.js';
-import { sendEmail } from '../services/emailService.js';
+import { sendOTPEmail } from '../services/emailService.js';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
 
 const generateTokens = (id: string) => {
@@ -32,7 +31,8 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    const verificationToken = crypto.randomBytes(20).toString('hex');
+    // Generate 6-digit OTP code
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     const user = await User.create({
       name,
@@ -40,28 +40,19 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       password,
       role: 'User',
       isVerified: false,
-      verificationToken,
+      verificationToken: otpCode,
     });
 
-    // Create Initial Profile
+    // Create Initial Blank Profile (NO AUTOMATIC LIFESTYLE DEFAULTS)
     await Profile.create({
       userId: user._id,
       age: age || 24,
       gender: gender || 'Male',
-      bio: `Hello! I am ${name}, excited to connect and find a compatible partner!`,
-      photos: [
-        {
-          url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600',
-          isMain: true,
-        },
-      ],
-      lifestyle: {
-        smoking: 'Never',
-        drinking: 'Socially',
-        exercise: 'Sometimes',
-        diet: 'Anything',
-        pets: 'Lover',
-      },
+      bio: '',
+      photos: [],
+      lifestyle: {}, // Unselected - must be chosen manually by user for 100% completion
+      personalityAnswers: [],
+      interests: [],
       preferences: {
         minAge: 18,
         maxAge: 50,
@@ -74,15 +65,12 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
     const { accessToken, refreshToken } = generateTokens(user._id.toString());
 
-    await sendEmail({
-      to: user.email,
-      subject: 'Welcome to SoulSync - Verify Your Account',
-      text: `Hello ${user.name},\n\nYour account verification code/token is: ${verificationToken}\n\nWelcome to SoulSync!`,
-    });
+    // Send 6-digit OTP via Brevo SMTP
+    await sendOTPEmail(user.email, user.name, otpCode);
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful! Verification token sent to email.',
+      message: `Registration successful! 6-digit OTP code sent to ${user.email}`,
       accessToken,
       refreshToken,
       user: {
@@ -146,11 +134,13 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
 
 export const verifyEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { token } = req.body;
-    const user = await User.findOne({ verificationToken: token }).select('+verificationToken');
+    const { token, otpCode } = req.body;
+    const codeToVerify = token || otpCode;
+
+    const user = await User.findOne({ verificationToken: codeToVerify }).select('+verificationToken');
 
     if (!user) {
-      res.status(400).json({ success: false, message: 'Invalid or expired verification token' });
+      res.status(400).json({ success: false, message: 'Invalid 6-digit OTP verification code' });
       return;
     }
 
@@ -159,6 +149,31 @@ export const verifyEmail = async (req: Request, res: Response, next: NextFunctio
     await user.save();
 
     res.status(200).json({ success: true, message: 'Account successfully verified!' });
+  } catch (err: any) {
+    next(err);
+  }
+};
+
+export const sendOTP = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(404).json({ success: false, message: 'No user account found with that email' });
+      return;
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    user.verificationToken = otpCode;
+    await user.save();
+
+    await sendOTPEmail(user.email, user.name, otpCode);
+
+    res.status(200).json({
+      success: true,
+      message: `New 6-digit OTP sent to ${email}`,
+    });
   } catch (err: any) {
     next(err);
   }
@@ -174,18 +189,14 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
       return;
     }
 
-    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
 
-    await sendEmail({
-      to: user.email,
-      subject: 'SoulSync - Reset Password Request',
-      text: `Hello ${user.name},\n\nUse this reset token to change your password: ${resetToken}\nValid for 1 hour.`,
-    });
+    await sendOTPEmail(user.email, user.name, resetToken);
 
-    res.status(200).json({ success: true, message: 'Password reset token sent to your email.' });
+    res.status(200).json({ success: true, message: 'Password reset 6-digit OTP sent to your email.' });
   } catch (err: any) {
     next(err);
   }
@@ -201,7 +212,7 @@ export const resetPassword = async (req: Request, res: Response, next: NextFunct
     }).select('+resetPasswordToken +resetPasswordExpires');
 
     if (!user) {
-      res.status(400).json({ success: false, message: 'Token is invalid or has expired' });
+      res.status(400).json({ success: false, message: 'OTP is invalid or has expired' });
       return;
     }
 

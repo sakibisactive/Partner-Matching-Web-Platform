@@ -12,11 +12,11 @@ export interface IPhoto {
 }
 
 export interface ILifestyle {
-  smoking: 'Never' | 'Occasionally' | 'Regularly';
-  drinking: 'Never' | 'Socially' | 'Regularly';
-  exercise: 'Never' | 'Sometimes' | 'Often' | 'Daily';
-  diet: 'Anything' | 'Vegetarian' | 'Vegan' | 'Keto' | 'Halal';
-  pets: 'None' | 'Cat' | 'Dog' | 'Both' | 'Lover';
+  smoking?: 'Never' | 'Occasionally' | 'Regularly';
+  drinking?: 'Never' | 'Socially' | 'Regularly';
+  exercise?: 'Never' | 'Sometimes' | 'Often' | 'Daily';
+  diet?: 'Anything' | 'Vegetarian' | 'Vegan' | 'Keto' | 'Halal';
+  pets?: 'None' | 'Cat' | 'Dog' | 'Both' | 'Lover';
 }
 
 export interface ISocialLinks {
@@ -110,12 +110,12 @@ const ProfileSchema: Schema<IProfile> = new Schema(
     },
     city: {
       type: String,
-      default: 'New York',
+      default: '',
       index: true,
     },
     country: {
       type: String,
-      default: 'USA',
+      default: '',
       index: true,
     },
     location: {
@@ -125,13 +125,13 @@ const ProfileSchema: Schema<IProfile> = new Schema(
         default: 'Point',
       },
       coordinates: {
-        type: [Number], // [lng, lat]
+        type: [Number],
         default: [-74.006, 40.7128],
       },
     },
     religion: {
       type: String,
-      default: 'None',
+      default: '',
     },
     relationshipGoal: {
       type: String,
@@ -139,11 +139,11 @@ const ProfileSchema: Schema<IProfile> = new Schema(
       default: 'Long-term',
     },
     lifestyle: {
-      smoking: { type: String, enum: ['Never', 'Occasionally', 'Regularly'], default: 'Never' },
-      drinking: { type: String, enum: ['Never', 'Socially', 'Regularly'], default: 'Socially' },
-      exercise: { type: String, enum: ['Never', 'Sometimes', 'Often', 'Daily'], default: 'Sometimes' },
-      diet: { type: String, enum: ['Anything', 'Vegetarian', 'Vegan', 'Keto', 'Halal'], default: 'Anything' },
-      pets: { type: String, enum: ['None', 'Cat', 'Dog', 'Both', 'Lover'], default: 'Lover' },
+      smoking: { type: String, enum: ['Never', 'Occasionally', 'Regularly'] },
+      drinking: { type: String, enum: ['Never', 'Socially', 'Regularly'] },
+      exercise: { type: String, enum: ['Never', 'Sometimes', 'Often', 'Daily'] },
+      diet: { type: String, enum: ['Anything', 'Vegetarian', 'Vegan', 'Keto', 'Halal'] },
+      pets: { type: String, enum: ['None', 'Cat', 'Dog', 'Both', 'Lover'] },
     },
     socialLinks: {
       facebook: { type: String, default: '' },
@@ -193,5 +193,72 @@ const ProfileSchema: Schema<IProfile> = new Schema(
 );
 
 ProfileSchema.index({ location: '2dsphere' });
+
+/**
+ * Helper function to calculate exact Profile Completion Percentage (0 to 100%)
+ */
+export function computeProfileCompletion(profile: IProfile): {
+  percentage: number;
+  isComplete: boolean;
+  missingSections: string[];
+} {
+  const missingSections: string[] = [];
+
+  // 1. Basic Info & City/Country (20%)
+  let basicScore = 0;
+  if (profile.bio && profile.bio.trim().length > 10) basicScore += 5;
+  else missingSections.push('Write a bio/story (at least 10 characters)');
+
+  if (profile.city && profile.country) basicScore += 5;
+  else missingSections.push('Specify your City and Country');
+
+  if (profile.occupation && profile.education) basicScore += 5;
+  else missingSections.push('Add your Occupation and Education');
+
+  if (profile.age >= 18 && profile.gender) basicScore += 5;
+
+  // 2. Lifestyle Choices (20%) - Must choose all 5 manually
+  let lifestyleScore = 0;
+  const l = profile.lifestyle || {};
+  if (l.smoking && l.drinking && l.exercise && l.diet && l.pets) {
+    lifestyleScore = 20;
+  } else {
+    missingSections.push('Select all 5 Lifestyle Attributes (Smoking, Drinking, Exercise, Diet, Pets)');
+  }
+
+  // 3. Photos (15%)
+  let photoScore = 0;
+  if (profile.photos && profile.photos.length >= 1) {
+    photoScore = 15;
+  } else {
+    missingSections.push('Upload at least 1 Profile Photo');
+  }
+
+  // 4. World Hobbies / Interests (20%)
+  let hobbiesScore = 0;
+  if (profile.interests && profile.interests.length >= 3) {
+    hobbiesScore = 20;
+  } else {
+    missingSections.push('Select at least 3 World Hobbies/Interests');
+  }
+
+  // 5. 50 Personality Questions (25%)
+  let personalityScore = 0;
+  if (profile.personalityAnswers && profile.personalityAnswers.length >= 50) {
+    personalityScore = 25;
+  } else {
+    const remaining = 50 - (profile.personalityAnswers?.length || 0);
+    missingSections.push(`Answer all 50 Personality Questions (${remaining} remaining)`);
+  }
+
+  const percentage = Math.min(100, basicScore + lifestyleScore + photoScore + hobbiesScore + personalityScore);
+  const isComplete = percentage === 100;
+
+  return {
+    percentage,
+    isComplete,
+    missingSections,
+  };
+}
 
 export const Profile = mongoose.model<IProfile>('Profile', ProfileSchema);

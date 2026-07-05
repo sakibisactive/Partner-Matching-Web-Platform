@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useDiscoverUsersQuery, useLikeUserMutation, useSaveUserMutation } from '../../redux/services/matchApi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Bookmark, Sparkles, Filter, MapPin, Briefcase, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { Heart, Bookmark, Sparkles, Filter, MapPin, Briefcase, GraduationCap, CheckCircle2, Lock, ChevronRight } from 'lucide-react';
+import { ProfileCompletionBar } from '../../components/profile/ProfileCompletionBar';
+import { Link } from 'react-router-dom';
 
 export const DiscoverPage: React.FC = () => {
   const [minAge, setMinAge] = useState<number>(18);
@@ -40,6 +42,8 @@ export const DiscoverPage: React.FC = () => {
       setTimeout(() => setActiveNotification(null), 3000);
     } catch (e) {}
   };
+
+  const isProfileComplete = data?.isProfileComplete ?? true;
 
   return (
     <div className="space-y-8">
@@ -101,8 +105,30 @@ export const DiscoverPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Discover Profile Feed Grid */}
-      {isLoading ? (
+      {/* MANDATORY 100% PROFILE COMPLETION LOCK SCREEN */}
+      {!isLoading && !isProfileComplete ? (
+        <div className="space-y-6">
+          <ProfileCompletionBar
+            percentage={data?.completionPercentage || 0}
+            missingSections={data?.missingSections || []}
+          />
+          <div className="glass-panel p-12 rounded-3xl text-center border border-slate-800 space-y-4 max-w-xl mx-auto">
+            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 mx-auto flex items-center justify-center text-rose-400">
+              <Lock className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-bold text-white font-outfit">Discovery Feed Locked</h2>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Without selecting your hobbies, lifestyle choices, and 50 personality answers, the algorithm cannot calculate accurate compatibility scores with other users. Reach 100% completion to unlock candidate profiles!
+            </p>
+            <Link
+              to="/edit-profile"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gradient-to-r from-rose-600 via-indigo-600 to-amber-500 text-white font-bold text-sm shadow-xl"
+            >
+              Complete My Profile Now <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      ) : isLoading ? (
         <div className="py-20 text-center space-y-3">
           <div className="w-10 h-10 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin mx-auto" />
           <p className="text-slate-400 text-sm">Computing compatibility vectors...</p>

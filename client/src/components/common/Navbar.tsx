@@ -20,6 +20,7 @@ export const Navbar: React.FC = () => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+  const isLandingPage = location.pathname === '/';
 
   return (
     <>
@@ -131,20 +132,22 @@ export const Navbar: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3">
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                >
-                  Log In
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 via-rose-500 to-amber-500 hover:opacity-90 shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]"
-                >
-                  Get Started
-                </Link>
-              </div>
+              !isLandingPage && (
+                <div className="flex items-center gap-3">
+                  <Link
+                    to="/login"
+                    className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 via-rose-500 to-amber-500 hover:opacity-90 shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]"
+                  >
+                    Get Started
+                  </Link>
+                </div>
+              )
             )}
           </div>
         </div>
