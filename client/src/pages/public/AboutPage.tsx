@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Cpu, Lock, Layers } from 'lucide-react';
+import { Sparkles, Cpu, Layers } from 'lucide-react';
 
 export const AboutPage: React.FC = () => {
   return (

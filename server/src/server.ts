@@ -55,7 +55,7 @@ app.use('/api/admin', adminRoutes);
 app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({
     status: 'online',
-    app: 'FIND TRU LUV Platform API',
+    app: 'SoulSync Platform API',
     timestamp: new Date().toISOString(),
   });
 });
@@ -72,7 +72,7 @@ connectDB().then(async () => {
   await seedInterests();
 
   server.listen(PORT, () => {
-    console.log(`[Server] FIND TRU LUV Backend running on http://localhost:${PORT}`);
+    console.log(`[Server] SoulSync Backend running on http://localhost:${PORT}`);
   });
 });
 

@@ -49,7 +49,7 @@ export const AdminUsersPage: React.FC = () => {
     <div className="space-y-6">
       <div className="glass-panel p-6 rounded-3xl border border-slate-800 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white font-outfit">FIND TRU LUV Member Management</h1>
+          <h1 className="text-2xl font-bold text-white font-outfit">SoulSync Member Management</h1>
           <p className="text-xs text-slate-400">Inspect all member profiles, watch full info & social links, grant verified badges, or remove users.</p>
         </div>
       </div>

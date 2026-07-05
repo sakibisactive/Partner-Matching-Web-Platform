@@ -175,7 +175,7 @@ export const EditProfilePage: React.FC = () => {
       <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-extrabold text-white font-outfit uppercase">Edit FIND TRU LUV Profile</h1>
+            <h1 className="text-3xl font-extrabold text-white font-outfit">Edit SoulSync Profile</h1>
             <p className="text-slate-400 text-sm">Customize your basic info, social media, hobbies, photos, and 50 questions.</p>
           </div>
           {savedSuccessMessage && (

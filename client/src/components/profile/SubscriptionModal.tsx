@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Check, CreditCard, Lock, X, Sparkles } from 'lucide-react';
+import { Crown, CreditCard, Lock, X, Sparkles } from 'lucide-react';
 import { useUpgradeSubscriptionMutation } from '../../redux/services/profileApi';
 
 export const SubscriptionModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -17,7 +17,7 @@ export const SubscriptionModal: React.FC<{ onClose: () => void }> = ({ onClose }
     e.preventDefault();
     try {
       await upgradeSubscription({ membershipTier: selectedPlan }).unwrap();
-      setSuccessMessage(`🎉 Payment Approved! Upgraded to FIND TRU LUV ${selectedPlan} Tier.`);
+      setSuccessMessage(`🎉 Payment Approved! Upgraded to SoulSync ${selectedPlan} Tier.`);
       setTimeout(() => {
         onClose();
       }, 2500);
@@ -43,7 +43,7 @@ export const SubscriptionModal: React.FC<{ onClose: () => void }> = ({ onClose }
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-600 mx-auto flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
             <Crown className="w-6 h-6 fill-white" />
           </div>
-          <h2 className="text-2xl font-extrabold text-white font-outfit uppercase">FIND TRU LUV VIP Checkout</h2>
+          <h2 className="text-2xl font-extrabold text-white font-outfit uppercase">SoulSync VIP Checkout</h2>
           <p className="text-xs text-slate-400">Unlock priority matching, unlimited likes, and direct contact access.</p>
         </div>
 

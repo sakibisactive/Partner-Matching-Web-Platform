@@ -9,8 +9,8 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
-            <span className="font-extrabold text-white text-lg tracking-tight font-outfit uppercase">FIND TRU LUV</span>
-            <span className="text-slate-500 text-xs">© 2026 Partner Matching Platform</span>
+            <span className="font-bold text-white text-lg tracking-tight font-outfit">SoulSync</span>
+            <span className="text-slate-500 text-xs">© 2026 MERN Compatibility Platform</span>
           </div>
 
           <div className="flex items-center gap-6 text-sm text-slate-400">

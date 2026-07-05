@@ -33,8 +33,8 @@ export const Navbar: React.FC = () => {
                   <Heart className="w-5 h-5 text-rose-500 fill-rose-500 animate-pulse" />
                 </div>
               </div>
-              <span className="text-xl font-black bg-gradient-to-r from-white via-rose-200 to-indigo-300 bg-clip-text text-transparent tracking-tight font-outfit uppercase">
-                FIND TRU LUV
+              <span className="text-xl font-extrabold bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent tracking-tight font-outfit">
+                SoulSync
               </span>
             </Link>
 
@@ -140,9 +140,9 @@ export const Navbar: React.FC = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="px-5 py-2 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-rose-600 via-indigo-600 to-amber-500 hover:opacity-90 shadow-lg shadow-rose-500/20 transition-all hover:scale-[1.02]"
+                  className="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 via-rose-500 to-amber-500 hover:opacity-90 shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02]"
                 >
-                  Join FIND TRU LUV
+                  Get Started
                 </Link>
               </div>
             )}

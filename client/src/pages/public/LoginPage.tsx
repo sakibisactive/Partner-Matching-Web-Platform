@@ -48,11 +48,11 @@ export const LoginPage: React.FC = () => {
     <div className="min-h-[80vh] flex items-center justify-center py-12">
       <div className="w-full max-w-md space-y-8 glass-panel p-8 sm:p-10 rounded-3xl border border-slate-800 shadow-2xl">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-600 to-indigo-500 mx-auto flex items-center justify-center text-white shadow-lg shadow-rose-500/20">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-rose-500 mx-auto flex items-center justify-center text-white shadow-lg shadow-rose-500/20">
             <Heart className="w-6 h-6 fill-white" />
           </div>
-          <h2 className="text-3xl font-extrabold text-white tracking-tight font-outfit uppercase">FIND TRU LUV Login</h2>
-          <p className="text-slate-400 text-sm">Sign in to your compatibility matching account</p>
+          <h2 className="text-3xl font-extrabold text-white tracking-tight font-outfit">Welcome Back</h2>
+          <p className="text-slate-400 text-sm">Sign in to your SoulSync account</p>
         </div>
 
         {errorMessage && (
@@ -100,7 +100,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-rose-600 via-indigo-600 to-amber-500 hover:opacity-95 shadow-lg shadow-rose-500/25 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-indigo-600 via-rose-500 to-amber-500 hover:opacity-95 shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
