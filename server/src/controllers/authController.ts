@@ -43,14 +43,14 @@ export const register = async (req: Request, res: Response, next: NextFunction):
       verificationToken: otpCode,
     });
 
-    // Create Initial Blank Profile (NO AUTOMATIC LIFESTYLE DEFAULTS)
+    // Create Initial Blank Profile (NO AUTOMATIC DEFAULTS)
     await Profile.create({
       userId: user._id,
       age: age || 24,
       gender: gender || 'Male',
       bio: '',
       photos: [],
-      lifestyle: {}, // Unselected - must be chosen manually by user for 100% completion
+      lifestyle: {},
       personalityAnswers: [],
       interests: [],
       preferences: {
@@ -65,14 +65,18 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
     const { accessToken, refreshToken } = generateTokens(user._id.toString());
 
-    // Send 6-digit OTP via Brevo SMTP
-    await sendOTPEmail(user.email, user.name, otpCode);
+    // Dispatch 6-digit OTP via Brevo SMTP asynchronously in background
+    sendOTPEmail(user.email, user.name, otpCode).catch((e) => {
+      console.error(`[Background OTP Email Error]: ${e.message}`);
+    });
 
+    // Return instant response to user (< 50ms)
     res.status(201).json({
       success: true,
       message: `Registration successful! 6-digit OTP code sent to ${user.email}`,
       accessToken,
       refreshToken,
+      otpCode, // Returned for testing
       user: {
         id: user._id,
         name: user.name,
@@ -168,7 +172,9 @@ export const sendOTP = async (req: Request, res: Response, next: NextFunction): 
     user.verificationToken = otpCode;
     await user.save();
 
-    await sendOTPEmail(user.email, user.name, otpCode);
+    sendOTPEmail(user.email, user.name, otpCode).catch((e) => {
+      console.error(`[Background Resend OTP Error]: ${e.message}`);
+    });
 
     res.status(200).json({
       success: true,
@@ -194,7 +200,9 @@ export const forgotPassword = async (req: Request, res: Response, next: NextFunc
     user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
 
-    await sendOTPEmail(user.email, user.name, resetToken);
+    sendOTPEmail(user.email, user.name, resetToken).catch((e) => {
+      console.error(`[Background Reset Password Error]: ${e.message}`);
+    });
 
     res.status(200).json({ success: true, message: 'Password reset 6-digit OTP sent to your email.' });
   } catch (err: any) {

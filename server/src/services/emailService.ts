@@ -16,15 +16,20 @@ export const sendEmail = async (options: {
       const transporter = nodemailer.createTransport({
         host,
         port,
-        secure: false, // TLS via port 587
+        secure: port === 465, // true for 465, false for 587
         auth: {
           user,
           pass,
         },
+        connectionTimeout: 8000, // 8 second max connection timeout
+        socketTimeout: 8000,
+        tls: {
+          rejectUnauthorized: false,
+        },
       });
 
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"SoulSync Platform" <b0e13d001@smtp-brevo.com>',
+        from: process.env.EMAIL_FROM || '"SoulSync Support" <b0e13d001@smtp-brevo.com>',
         to: options.to,
         subject: options.subject,
         text: options.text,
