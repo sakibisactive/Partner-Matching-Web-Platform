@@ -1,48 +1,54 @@
-import { User } from '../models/User.js';
-import { Profile } from '../models/Profile.js';
+import { prisma } from '../config/prisma.js';
+import bcrypt from 'bcryptjs';
 
 export const seedAdminUser = async (): Promise<void> => {
   try {
     const adminEmail = 'admin@findtruluv.com';
     const adminPassword = 'findtruluvwithsakib';
 
-    let admin = await User.findOne({ email: adminEmail });
+    let admin = await prisma.user.findUnique({ where: { email: adminEmail } });
 
     if (!admin) {
-      console.log('[Seeder] Creating FIND TRU LUV Default Master Admin Account...');
-      admin = await User.create({
-        name: 'FIND TRU LUV Master Admin',
-        email: adminEmail,
-        password: adminPassword,
-        role: 'Admin',
-        isVerified: true,
-        status: 'active',
+      console.log('[Seeder] Creating FIND TRU LUV Default Master Admin Account in Supabase...');
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      admin = await prisma.user.create({
+        data: {
+          name: 'FIND TRU LUV Master Admin',
+          email: adminEmail,
+          password: hashedPassword,
+          role: 'Admin',
+          isVerified: true,
+        },
       });
 
-      await Profile.create({
-        userId: admin._id,
-        age: 30,
-        gender: 'Male',
-        bio: 'FIND TRU LUV Platform Administrator and Master Moderator.',
-        city: 'Global Headquarters',
-        country: 'Worldwide',
-        isPremium: true,
-        membershipTier: 'VIP',
-        photos: [
-          {
-            url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600',
-            isMain: true,
-          },
-        ],
+      await prisma.profile.create({
+        data: {
+          userId: admin.id,
+          displayName: 'Master Admin',
+          age: 30,
+          gender: 'Male',
+          bio: 'FIND TRU LUV Platform Administrator and Master Moderator.',
+          location: 'Global Headquarters',
+          photos: [
+            {
+              url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=600',
+              isMain: true,
+            },
+          ],
+          isProfileComplete: true,
+          completionPercentage: 100,
+        },
       });
 
-      console.log(`[Seeder] Master Admin created: ${adminEmail} / ${adminPassword}`);
+      console.log(`[Seeder] Master Admin verified for: ${adminEmail}`);
     } else {
-      // Ensure role is Admin and status is active
-      admin.role = 'Admin';
-      admin.status = 'active';
-      admin.isVerified = true;
-      await admin.save();
+      await prisma.user.update({
+        where: { id: admin.id },
+        data: {
+          role: 'Admin',
+          isVerified: true,
+        },
+      });
     }
   } catch (err: any) {
     console.error(`[Admin Seeder Error]: ${err.message}`);

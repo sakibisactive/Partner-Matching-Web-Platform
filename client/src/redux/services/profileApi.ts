@@ -34,7 +34,7 @@ export const profileApi = apiSlice.injectEndpoints({
       query: (interests) => ({
         url: '/profile/interests',
         method: 'PUT',
-        body: { interests },
+        body: { interestIds: interests, interests },
       }),
       invalidatesTags: ['Profile'],
     }),
@@ -42,7 +42,7 @@ export const profileApi = apiSlice.injectEndpoints({
       query: (url) => ({
         url: '/profile/photos',
         method: 'POST',
-        body: { url },
+        body: { photoUrl: url, url },
       }),
       invalidatesTags: ['Profile'],
     }),

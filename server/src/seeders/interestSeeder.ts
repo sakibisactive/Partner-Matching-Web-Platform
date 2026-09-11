@@ -1,4 +1,4 @@
-import { Interest } from '../models/Interest.js';
+import { prisma } from '../config/prisma.js';
 
 export const seedInterests = async (): Promise<void> => {
   try {
@@ -73,13 +73,13 @@ export const seedInterests = async (): Promise<void> => {
     ];
 
     for (const item of defaultInterests) {
-      await Interest.findOneAndUpdate(
-        { name: item.name },
-        { name: item.name, category: item.category },
-        { upsert: true, new: true }
-      );
+      await prisma.interest.upsert({
+        where: { name: item.name },
+        update: { category: item.category },
+        create: { name: item.name, category: item.category },
+      });
     }
-    console.log(`[Seeder] ${defaultInterests.length} World Hobbies and Interest options synced!`);
+    console.log(`[Seeder] ${defaultInterests.length} World Hobbies and Interest options synced in Supabase!`);
   } catch (err: any) {
     console.error(`[Seeder Error] Failed to seed interests: ${err.message}`);
   }

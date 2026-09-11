@@ -1,6 +1,6 @@
-# 💖 SoulSync - Partner Matching Web Platform (MERN Stack)
+# 💖 SoulSync - Partner Matching Web Platform
 
-SoulSync is a full-stack, production-quality compatibility-based partner matching web application powered by the **MERN Stack** (MongoDB, Express, React 19, Node.js), **TypeScript**, **Redux Toolkit + RTK Query**, **TailwindCSS**, **Socket.IO**, and a multi-dimensional weighted compatibility engine.
+SoulSync is a full-stack, production-quality compatibility-based partner matching web application powered by **Next.js 15**, **Express.js**, **Supabase PostgreSQL**, **Firebase**, **MongoDB**, **TypeScript**, **Redux Toolkit + RTK Query**, **TailwindCSS**, **Socket.IO**, and containerized for self-hosted VPS deployment via **Coolify**.
 
 ---
 
@@ -12,18 +12,21 @@ SoulSync is a full-stack, production-quality compatibility-based partner matchin
   - **20% Lifestyle Similarity** (Weighted matching matrix for Smoking, Drinking, Exercise, Diet, Pets)
   - **10% Age Preference Alignment** (Inside preferred range with gradual decay)
   - **10% Location Preference** (Haversine formula distance calculation)
-- 🔐 **Authentication & Authorization**: JWT Access/Refresh tokens, bcrypt password hashing, HTTP-only secure cookies, and Role-Based Access Control (`Guest`, `User`, `Admin`).
-- 💬 **Real-Time Messaging & Presence**: Socket.IO powered instant chat, typing indicators, online status, read receipts, and push-like notifications.
+- 🔐 **Authentication & Authorization**: JWT Access/Refresh tokens, bcrypt password hashing, HTTP-only secure cookies, Supabase Auth integration, and Role-Based Access Control (`Guest`, `User`, `Admin`).
+- 💬 **Real-Time Messaging & Presence**: Socket.IO powered instant chat and Firebase Firestore realtime presence, typing indicators, online status, read receipts, and notifications.
+- 🗄️ **Multi-Database Architecture**: MongoDB for algorithmic user matrix + Supabase PostgreSQL (via Prisma) for relational profile data and fast reporting.
 - 🖼️ **Rich Profile Management**: Multi-photo upload powered by Cloudinary and Multer, customizable preferences, interests, and profile details.
 - 🛡️ **Admin Moderation & Analytics Queue**: Dashboard with active users, daily registrations, report queues, user banning, and interest tag management.
 - 🎨 **Modern Design System**: Rich dark-mode visual hierarchy, glassmorphism, responsive grid layout, and Framer Motion micro-animations.
+- 🚢 **Coolify Deployment Ready**: Root Docker Compose & Coolify manifest with multi-stage standalone containers.
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- **Framework**: React 19 + Vite + TypeScript
+### Frontend (`client/`)
+- **Framework**: Next.js 15 (App Router) + React 19 + TypeScript (with Vite dev fallback)
+- **Database & Cloud Client**: Supabase JS Client + Firebase Suite (Firestore, Auth, Storage)
 - **State Management**: Redux Toolkit & RTK Query
 - **Styling**: TailwindCSS + Custom Glassmorphism
 - **Animations**: Framer Motion

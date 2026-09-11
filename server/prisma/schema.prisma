@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       String        @id @default(cuid())
+  email                    String        @unique
+  password                 String
+  name                     String
+  role                     String        @default("User") // "User" or "Admin"
+  isVerified               Boolean       @default(false)
+  failedOtpAttempts        Int           @default(0)
+  resetPasswordToken       String?
+  resetPasswordExpires     DateTime?
+  verificationTokenExpires  DateTime?
+  createdAt                DateTime      @default(now())
+  updatedAt                DateTime      @updatedAt
+
+  profile                  Profile?
+  sentLikes                Like[]        @relation("SentLikes")
+  receivedLikes            Like[]        @relation("ReceivedLikes")
+  reportsFiled             Report[]      @relation("Reporter")
+  reportsReceived          Report[]      @relation("ReportedUser")
+  notificationsReceived    Notification[] @relation("Recipient")
+  notificationsSent        Notification[] @relation("Sender")
+}
+
+model Profile {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  displayName          String
+  bio                  String?
+  age                  Int?
+  gender               String?
+  occupation           String?
+  location             String?
+  avatarUrl            String?
+  photos               Json?     @default("[]")
+  interests            Json?     @default("[]")
+  personalityAnswers   Json?     @default("[]")
+  completionPercentage Int       @default(0)
+  isProfileComplete    Boolean   @default(false)
+  preference           Json?     @default("{}")
+  verified             Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentMatches          Match[]   @relation("ProfileA")
+  receivedMatches      Match[]   @relation("ProfileB")
+}
+
+model Match {
+  id             String    @id @default(cuid())
+  profileAId     String
+  profileBId     String
+  status         String    @default("pending") // "pending", "accepted", "declined"
+  score          Float?
+  matchBreakdown Json?     @default("{}")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  profileA       Profile   @relation("ProfileA", fields: [profileAId], references: [id], onDelete: Cascade)
+  profileB       Profile   @relation("ProfileB", fields: [profileBId], references: [id], onDelete: Cascade)
+
+  @@unique([profileAId, profileBId])
+}
+
+model Chat {
+  id           String    @id @default(cuid())
+  participants String[]  // User IDs of chat participants
+  lastMessage  Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  messages     Message[]
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  chatId    String
+  senderId  String
+  content   String
+  readBy    String[] @default([])
+  createdAt DateTime @default(now())
+
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  isSuperLike Boolean  @default(false)
+  status      String   @default("pending") // "pending", "accepted", "declined"
+  createdAt   DateTime @default(now())
+
+  sender      User     @relation("SentLikes", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User     @relation("ReceivedLikes", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}
+
+model Interest {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  category  String   @default("General")
+  icon      String?
+  createdAt DateTime @default(now())
+}
+
+model Question {
+  id             String   @id @default(cuid())
+  questionNumber Int?     @unique
+  question       String?
+  questionText   String?
+  trait          String?
+  category       String?  @default("General")
+  weight         Float?   @default(1.0)
+  options        Json?    @default("[]")
+  createdAt      DateTime @default(now())
+}
+
+model Report {
+  id             String   @id @default(cuid())
+  reporterId     String
+  reportedUserId String
+  reason         String
+  status         String   @default("pending") // "pending", "resolved", "dismissed"
+  createdAt      DateTime @default(now())
+
+  reporter       User     @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser   User     @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  recipientId String
+  senderId    String?
+  type        String   // "like", "match", "message", "system"
+  message     String
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  recipient   User     @relation("Recipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User?    @relation("Sender", fields: [senderId], references: [id], onDelete: SetNull)
+}

@@ -9,15 +9,16 @@ import {
   getMe,
 } from '../controllers/authController.js';
 import { protect } from '../middlewares/authMiddleware.js';
+import { authLimiter, otpVerificationLimiter } from '../middlewares/rateLimiter.js';
 
 const router = Router();
 
-router.post('/register', register);
-router.post('/login', login);
-router.post('/verify-email', verifyEmail);
-router.post('/send-otp', sendOTP);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/register', authLimiter, register);
+router.post('/login', authLimiter, login);
+router.post('/verify-email', otpVerificationLimiter, verifyEmail);
+router.post('/send-otp', authLimiter, sendOTP);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.post('/reset-password', otpVerificationLimiter, resetPassword);
 router.get('/me', protect, getMe);
 
 export default router;

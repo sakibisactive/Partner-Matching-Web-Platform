@@ -10,8 +10,10 @@ export interface IUser extends Document {
   isVerified: boolean;
   status: 'active' | 'banned';
   verificationToken?: string;
+  verificationTokenExpires?: Date;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
+  failedOtpAttempts?: number;
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -57,12 +59,21 @@ const UserSchema: Schema<IUser> = new Schema(
       type: String,
       select: false,
     },
+    verificationTokenExpires: {
+      type: Date,
+      select: false,
+    },
     resetPasswordToken: {
       type: String,
       select: false,
     },
     resetPasswordExpires: {
       type: Date,
+      select: false,
+    },
+    failedOtpAttempts: {
+      type: Number,
+      default: 0,
       select: false,
     },
   },
@@ -72,6 +83,10 @@ const UserSchema: Schema<IUser> = new Schema(
 // Hash password before saving
 UserSchema.pre<IUser>('save', async function (next) {
   if (!this.isModified('password') || !this.password) {
+    return next();
+  }
+  // Prevent double-hashing if password is already hashed with bcrypt
+  if (this.password.startsWith('$2a$') || this.password.startsWith('$2b$')) {
     return next();
   }
   try {

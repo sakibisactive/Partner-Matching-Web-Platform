@@ -4,20 +4,22 @@ import { Provider } from 'react-redux';
 import { store } from './redux/store';
 import { SocketProvider } from './contexts/SocketContext';
 import { MainLayout } from './layouts/MainLayout';
-import { LandingPage } from './pages/public/LandingPage';
-import { LoginPage } from './pages/public/LoginPage';
-import { RegisterPage } from './pages/public/RegisterPage';
-import { AboutPage } from './pages/public/AboutPage';
-import { DiscoverPage } from './pages/user/DiscoverPage';
-import { MatchResultsPage } from './pages/user/MatchResultsPage';
-import { ProfilePage } from './pages/user/ProfilePage';
-import { EditProfilePage } from './pages/user/EditProfilePage';
-import { LikesPage } from './pages/user/LikesPage';
-import { ChatPage } from './pages/user/ChatPage';
-import { AdminDashboard } from './pages/admin/AdminDashboard';
-import { AdminUsersPage } from './pages/admin/AdminUsersPage';
-import { AdminReportsPage } from './pages/admin/AdminReportsPage';
-import { AdminInterestsPage } from './pages/admin/AdminInterestsPage';
+import { LandingPage } from './views/public/LandingPage';
+import { LoginPage } from './views/public/LoginPage';
+import { RegisterPage } from './views/public/RegisterPage';
+import { ForgotPasswordPage } from './views/public/ForgotPasswordPage';
+import { AboutPage } from './views/public/AboutPage';
+import { PrismaDemoPage } from './views/public/PrismaDemoPage';
+import { DiscoverPage } from './views/user/DiscoverPage';
+import { MatchResultsPage } from './views/user/MatchResultsPage';
+import { ProfilePage } from './views/user/ProfilePage';
+import { EditProfilePage } from './views/user/EditProfilePage';
+import { LikesPage } from './views/user/LikesPage';
+import { ChatPage } from './views/user/ChatPage';
+import { AdminDashboard } from './views/admin/AdminDashboard';
+import { AdminUsersPage } from './views/admin/AdminUsersPage';
+import { AdminReportsPage } from './views/admin/AdminReportsPage';
+import { AdminInterestsPage } from './views/admin/AdminInterestsPage';
 import { useAuth } from './hooks/useAuth';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -40,7 +42,10 @@ export default function App() {
               <Route index element={<LandingPage />} />
               <Route path="login" element={<LoginPage />} />
               <Route path="register" element={<RegisterPage />} />
+              <Route path="forgot-password" element={<ForgotPasswordPage />} />
+              <Route path="reset-password" element={<ForgotPasswordPage />} />
               <Route path="about" element={<AboutPage />} />
+              <Route path="prisma-demo" element={<PrismaDemoPage />} />
 
               {/* Protected User Routes */}
               <Route

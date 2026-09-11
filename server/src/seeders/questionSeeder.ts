@@ -1,12 +1,12 @@
-import { Question } from '../models/Question.js';
+import { prisma } from '../config/prisma.js';
 
 export const seedQuestions = async (): Promise<void> => {
   try {
-    const count = await Question.countDocuments();
+    const count = await prisma.question.count();
     if (count >= 50) return;
 
-    console.log('[Seeder] Seeding 50 Likert-scale Personality Questions...');
-    await Question.deleteMany({});
+    console.log('[Seeder] Seeding 50 Likert-scale Personality Questions into Supabase...');
+    await prisma.question.deleteMany({});
 
     const questionsData = [
       // Extraversion (10)
@@ -70,8 +70,18 @@ export const seedQuestions = async (): Promise<void> => {
       { questionNumber: 50, question: 'I believe mutual trust is the cornerstone of love.', category: 'General', weight: 1.0 },
     ];
 
-    await Question.insertMany(questionsData);
-    console.log('[Seeder] 50 Personality Questions successfully seeded!');
+    for (const q of questionsData) {
+      await prisma.question.create({
+        data: {
+          questionNumber: q.questionNumber,
+          question: q.question,
+          category: q.category,
+          weight: q.weight,
+        },
+      });
+    }
+
+    console.log('[Seeder] 50 Personality Questions successfully seeded in Supabase!');
   } catch (err: any) {
     console.error(`[Seeder Error] Failed to seed questions: ${err.message}`);
   }

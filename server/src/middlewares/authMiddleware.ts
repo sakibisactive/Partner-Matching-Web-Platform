@@ -1,9 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { User, IUser } from '../models/User.js';
+import { prisma } from '../config/prisma.js';
 
 export interface AuthRequest extends Request {
-  user?: IUser;
+  user?: {
+    id: string;
+    _id: string;
+    email: string;
+    name: string;
+    role: string;
+    isVerified: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+  };
 }
 
 export const protect = async (
@@ -31,18 +40,28 @@ export const protect = async (
       process.env.JWT_SECRET || 'super_secret_jwt_key_partner_match_2026'
     ) as { id: string };
 
-    const user = await User.findById(decoded.id).select('-password');
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
     if (!user) {
       res.status(401).json({ success: false, message: 'User no longer exists' });
       return;
     }
 
-    if (user.status === 'banned') {
-      res.status(403).json({ success: false, message: 'Your account has been suspended/banned' });
-      return;
-    }
-
-    req.user = user;
+    req.user = {
+      ...user,
+      _id: user.id,
+    };
     next();
   } catch (err: any) {
     res.status(401).json({ success: false, message: 'Not authorized, token invalid or expired' });

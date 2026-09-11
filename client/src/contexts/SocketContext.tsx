@@ -20,9 +20,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     if (user) {
-      const serverUrl = (import.meta as any).env?.VITE_API_URL || window.location.origin;
+      const serverUrl =
+        (typeof process !== 'undefined' && (process.env?.NEXT_PUBLIC_SOCKET_URL || process.env?.NEXT_PUBLIC_API_URL)) ||
+        (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_URL) ||
+        window.location.origin;
+      const token = typeof window !== 'undefined' ? localStorage.getItem('soul_token') : null;
       const newSocket = io(serverUrl, {
         transports: ['websocket', 'polling'],
+        auth: {
+          token,
+          userId: user.id,
+        },
       });
 
       newSocket.emit('setup', user.id);

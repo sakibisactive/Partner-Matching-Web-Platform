@@ -1,89 +1,71 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../middlewares/authMiddleware.js';
-import { Profile, computeProfileCompletion } from '../models/Profile.js';
-import { User } from '../models/User.js';
-import { Match } from '../models/Match.js';
-import { Like } from '../models/Like.js';
-import { Message } from '../models/Message.js';
+import { prisma } from '../config/prisma.js';
 import { computeCompatibility } from '../algorithms/matchingEngine.js';
 
 export const discoverUsers = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const currentUserId = req.user!._id;
+    const currentUserId = req.user!.id;
     const {
       page = 1,
       limit = 10,
       minAge,
       maxAge,
       gender,
-      country,
-      city,
-      education,
-      occupation,
-      religion,
-      interest,
       sortBy = 'compatibility',
     } = req.query;
 
-    const myProfile = await Profile.findOne({ userId: currentUserId }).populate('interests');
+    let myProfile = await prisma.profile.findUnique({ where: { userId: currentUserId } });
     if (!myProfile) {
-      res.status(400).json({
-        success: false,
-        isProfileComplete: false,
-        completionPercentage: 0,
-        missingSections: ['Create your profile first'],
-        users: [],
+      myProfile = await prisma.profile.create({
+        data: {
+          userId: currentUserId,
+          displayName: req.user!.name,
+          age: 24,
+          gender: 'Male',
+          isProfileComplete: false,
+          completionPercentage: 15,
+        },
       });
-      return;
     }
 
-    // MANDATORY 100% PROFILE COMPLETION GUARD
-    const completion = computeProfileCompletion(myProfile);
-    if (!completion.isComplete) {
-      res.status(200).json({
-        success: true,
-        isProfileComplete: false,
-        completionPercentage: completion.percentage,
-        missingSections: completion.missingSections,
-        total: 0,
-        users: [],
-      });
-      return;
-    }
+    const whereClause: any = {
+      userId: { not: currentUserId },
+    };
 
-    const query: any = { userId: { $ne: currentUserId } };
+    if (gender && typeof gender === 'string') {
+      whereClause.gender = gender;
+    }
 
     if (minAge || maxAge) {
-      query.age = {};
-      if (minAge) query.age.$gte = parseInt(minAge as string, 10);
-      if (maxAge) query.age.$lte = parseInt(maxAge as string, 10);
+      whereClause.age = {};
+      if (minAge) whereClause.age.gte = parseInt(minAge as string, 10);
+      if (maxAge) whereClause.age.lte = parseInt(maxAge as string, 10);
     }
 
-    if (gender) query.gender = gender;
-    if (country) query.country = { $regex: country as string, $options: 'i' };
-    if (city) query.city = { $regex: city as string, $options: 'i' };
-    if (education) query.education = { $regex: education as string, $options: 'i' };
-    if (occupation) query.occupation = { $regex: occupation as string, $options: 'i' };
-    if (religion) query.religion = religion;
-    if (interest) query.interests = interest;
-
-    const rawProfiles = await Profile.find(query)
-      .populate('userId', 'name email role isVerified status createdAt')
-      .populate('interests');
-
-    // Filter out banned users and incomplete candidate profiles
-    const validProfiles = rawProfiles.filter((p) => {
-      if (!p.userId || (p.userId as any).status === 'banned') return false;
-      const candidateCompletion = computeProfileCompletion(p);
-      return candidateCompletion.isComplete;
+    const rawProfiles = await prisma.profile.findMany({
+      where: whereClause,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
+            isVerified: true,
+            createdAt: true,
+          },
+        },
+      },
     });
 
-    // Compute compatibility scores
-    let results = validProfiles.map((candidate) => {
-      const breakdown = computeCompatibility(myProfile, candidate);
+    let results = rawProfiles.map((candidate) => {
+      const breakdown = computeCompatibility(myProfile as any, candidate as any);
       return {
-        candidateId: candidate.userId._id,
-        user: candidate.userId,
+        candidateId: candidate.userId,
+        user: {
+          ...candidate.user,
+          _id: candidate.user.id,
+        },
         profile: candidate,
         compatibilityScore: breakdown.finalScore,
         breakdown,
@@ -94,17 +76,14 @@ export const discoverUsers = async (req: AuthRequest, res: Response, next: NextF
     if (sortBy === 'newest') {
       results.sort(
         (a, b) =>
-          new Date((b.user as any).createdAt).getTime() - new Date((a.user as any).createdAt).getTime()
+          new Date(b.user.createdAt).getTime() - new Date(a.user.createdAt).getTime()
       );
-    } else if (sortBy === 'distance') {
-      results.sort((a, b) => b.breakdown.location - a.breakdown.location);
     } else {
       results.sort((a, b) => b.compatibilityScore - a.compatibilityScore);
     }
 
-    // Pagination
-    const pageNum = parseInt(page as string, 10);
-    const limitNum = parseInt(limit as string, 10);
+    const pageNum = Math.max(1, parseInt(page as string, 10) || 1);
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string, 10) || 10));
     const startIndex = (pageNum - 1) * limitNum;
     const paginatedResults = results.slice(startIndex, startIndex + limitNum);
 
@@ -115,7 +94,7 @@ export const discoverUsers = async (req: AuthRequest, res: Response, next: NextF
       missingSections: [],
       total: results.length,
       page: pageNum,
-      totalPages: Math.ceil(results.length / limitNum),
+      totalPages: Math.ceil(results.length / limitNum) || 1,
       count: paginatedResults.length,
       users: paginatedResults,
     });
@@ -124,15 +103,10 @@ export const discoverUsers = async (req: AuthRequest, res: Response, next: NextF
   }
 };
 
-/**
- * Self Account Deletion for Standard Users
- * (Admin accounts CANNOT self-delete)
- */
 export const deleteMyAccount = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const user = req.user!;
 
-    // ADMIN SELF-DELETION PROTECTION
     if (user.role === 'Admin') {
       res.status(403).json({
         success: false,
@@ -141,20 +115,24 @@ export const deleteMyAccount = async (req: AuthRequest, res: Response, next: Nex
       return;
     }
 
-    const userId = user._id;
+    const userId = user.id;
 
-    // Delete User & Profile documents
-    await User.findByIdAndDelete(userId);
-    await Profile.findOneAndDelete({ userId });
+    // PostgreSQL Foreign Key Cascades handle profile, likes, reports, notifications
+    await prisma.user.delete({
+      where: { id: userId },
+    });
 
-    // Clean up related matches, likes, and messages
-    await Match.deleteMany({ $or: [{ userA: userId }, { userB: userId }] });
-    await Like.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] });
-    await Message.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] });
+    // Clean up chats where user was a participant
+    const chats = await prisma.chat.findMany({
+      where: { participants: { has: userId } },
+    });
+    for (const chat of chats) {
+      await prisma.chat.delete({ where: { id: chat.id } });
+    }
 
     res.status(200).json({
       success: true,
-      message: 'Your account and all associated data have been permanently deleted.',
+      message: 'Your account and all associated data have been permanently deleted from Supabase.',
     });
   } catch (err: any) {
     next(err);

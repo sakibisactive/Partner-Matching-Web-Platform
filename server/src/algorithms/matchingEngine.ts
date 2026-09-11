@@ -163,6 +163,7 @@ export function calculateLocationScore(
     const distanceKm = R * c;
 
     const maxDist = Math.max(
+      1,
       profileA.preferences?.maxDistanceKm || 100,
       profileB.preferences?.maxDistanceKm || 100
     );
@@ -194,9 +195,16 @@ export function computeCompatibility(
     profileB.personalityAnswers
   );
 
+  const extractInterestId = (item: any): string => {
+    if (!item) return '';
+    if (typeof item === 'string') return item;
+    if (item._id) return item._id.toString();
+    return item.toString();
+  };
+
   const interestScore = calculateInterestSimilarity(
-    (profileA.interests || []).map((i) => i.toString()),
-    (profileB.interests || []).map((i) => i.toString())
+    (profileA.interests || []).map(extractInterestId).filter(Boolean),
+    (profileB.interests || []).map(extractInterestId).filter(Boolean)
   );
 
   const lifestyleScore = calculateLifestyleSimilarity(

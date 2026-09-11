@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, CreditCard, Lock, X, Sparkles } from 'lucide-react';
+import { Crown, CreditCard, Lock, X, Sparkles, Check } from 'lucide-react';
 import { useUpgradeSubscriptionMutation } from '../../redux/services/profileApi';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 
 export const SubscriptionModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [selectedPlan, setSelectedPlan] = useState<'Gold' | 'VIP'>('VIP');
@@ -20,56 +22,56 @@ export const SubscriptionModal: React.FC<{ onClose: () => void }> = ({ onClose }
       setSuccessMessage(`🎉 Payment Approved! Upgraded to SoulSync ${selectedPlan} Tier.`);
       setTimeout(() => {
         onClose();
-      }, 2500);
+      }, 2200);
     } catch (e) {}
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.94 }}
         animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="glass-panel p-8 rounded-3xl border border-slate-800 max-w-lg w-full relative space-y-6 shadow-2xl"
+        exit={{ opacity: 0, scale: 0.94 }}
+        className="rounded-3xl border border-white/[0.08] bg-[#121522] p-8 max-w-lg w-full relative space-y-6 shadow-2xl shadow-black/80"
       >
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-slate-400 hover:text-white rounded-full bg-slate-900"
+          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-white rounded-full bg-white/[0.04]"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-600 mx-auto flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
-            <Crown className="w-6 h-6 fill-white" />
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 mx-auto flex items-center justify-center text-amber-400">
+            <Crown className="w-6 h-6 fill-amber-400" />
           </div>
-          <h2 className="text-2xl font-extrabold text-white font-outfit uppercase">SoulSync VIP Checkout</h2>
-          <p className="text-xs text-slate-400">Unlock priority matching, unlimited likes, and direct contact access.</p>
+          <h2 className="text-2xl font-extrabold text-white font-outfit">SoulSync VIP Membership</h2>
+          <p className="text-xs text-slate-400">Unlock priority candidate matching, unlimited likes, and direct social links.</p>
         </div>
 
         {successMessage ? (
-          <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-center font-bold text-sm animate-pulse space-y-2">
+          <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center font-bold text-sm animate-pulse space-y-2">
             <Sparkles className="w-8 h-8 mx-auto text-emerald-400" />
             <p>{successMessage}</p>
           </div>
         ) : (
-          <form onSubmit={handleFakePayment} className="space-y-6">
+          <form onSubmit={handleFakePayment} className="space-y-5">
             {/* Plan Picker */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setSelectedPlan('Gold')}
                 className={`p-4 rounded-2xl border text-left transition-all ${
                   selectedPlan === 'Gold'
-                    ? 'bg-amber-500/15 border-amber-500 text-amber-300 shadow-lg'
-                    : 'bg-slate-900 border-slate-800 text-slate-400'
+                    ? 'bg-amber-500/15 border-amber-500/40 text-white shadow-lg'
+                    : 'bg-[#0c0e17] border-white/[0.06] text-slate-400 hover:border-white/10'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sm">Gold Tier</span>
                   <span className="text-xs font-black text-amber-400">$9.99/mo</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">Boosted discover visibility & unlimited swipes.</p>
+                <p className="text-[11px] text-slate-400 mt-1">Boosted visibility & unlimited likes.</p>
               </button>
 
               <button
@@ -77,86 +79,82 @@ export const SubscriptionModal: React.FC<{ onClose: () => void }> = ({ onClose }
                 onClick={() => setSelectedPlan('VIP')}
                 className={`p-4 rounded-2xl border text-left transition-all ${
                   selectedPlan === 'VIP'
-                    ? 'bg-rose-500/15 border-rose-500 text-rose-300 shadow-lg'
-                    : 'bg-slate-900 border-slate-800 text-slate-400'
+                    ? 'bg-rose-500/15 border-rose-500/40 text-white shadow-lg'
+                    : 'bg-[#0c0e17] border-white/[0.06] text-slate-400 hover:border-white/10'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-sm">VIP Master</span>
                   <span className="text-xs font-black text-rose-400">$19.99/mo</span>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-1">Direct social links unlock & VIP crown badge.</p>
+                <p className="text-[11px] text-slate-400 mt-1">Direct social links unlock & VIP badge.</p>
               </button>
             </div>
 
-            {/* Real Credit Card Payment Form */}
-            <div className="space-y-3 p-4 rounded-2xl bg-slate-900/80 border border-slate-800">
-              <div className="flex items-center justify-between text-xs font-semibold text-slate-300 mb-1">
-                <span className="flex items-center gap-1">
-                  <CreditCard className="w-4 h-4 text-indigo-400" /> Credit / Debit Card
+            {/* Credit Card Form */}
+            <div className="space-y-3 p-4 rounded-2xl bg-[#0c0e17] border border-white/[0.08]">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-300">
+                <span className="flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-rose-400" /> Card Information
                 </span>
                 <span className="text-[10px] text-slate-500">256-Bit SSL Encrypted</span>
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-400 uppercase">Cardholder Name</label>
-                <input
+                <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Cardholder Name</label>
+                <Input
                   type="text"
                   required
                   value={cardHolder}
                   onChange={(e) => setCardHolder(e.target.value)}
-                  className="w-full p-2.5 rounded-xl glass-input text-xs"
+                  className="h-10 text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] text-slate-400 uppercase">Card Number</label>
-                <input
+                <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Card Number</label>
+                <Input
                   type="text"
                   required
                   value={cardNumber}
                   onChange={(e) => setCardNumber(e.target.value)}
-                  className="w-full p-2.5 rounded-xl glass-input text-xs font-mono"
+                  className="h-10 text-xs font-mono"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase">Expiry Date</label>
-                  <input
+                  <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Expiry Date</label>
+                  <Input
                     type="text"
                     required
                     value={expDate}
                     onChange={(e) => setExpDate(e.target.value)}
-                    className="w-full p-2.5 rounded-xl glass-input text-xs font-mono"
+                    className="h-10 text-xs font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-slate-400 uppercase">CVV</label>
-                  <input
+                  <label className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">CVV</label>
+                  <Input
                     type="text"
                     required
                     value={cvv}
                     onChange={(e) => setCvv(e.target.value)}
-                    className="w-full p-2.5 rounded-xl glass-input text-xs font-mono"
+                    className="h-10 text-xs font-mono"
                   />
                 </div>
               </div>
             </div>
 
-            <button
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-amber-500 via-rose-600 to-indigo-600 hover:opacity-95 shadow-xl shadow-rose-500/20 flex items-center justify-center gap-2"
+              variant="glow"
+              size="lg"
+              isLoading={isLoading}
+              className="w-full text-xs font-bold gap-2"
             >
-              {isLoading ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <>
-                  <Lock className="w-3.5 h-3.5" /> Confirm & Pay ${selectedPlan === 'Gold' ? '9.99' : '19.99'}
-                </>
-              )}
-            </button>
+              <Lock className="w-3.5 h-3.5" /> Confirm & Pay ${selectedPlan === 'Gold' ? '9.99' : '19.99'}
+            </Button>
           </form>
         )}
       </motion.div>
